@@ -1,0 +1,135 @@
+"""
+voiceover.py —— AI 配音:旁白稿 -> mp3 + 字幕(用微软 Edge 神经网络语音,免费、无需 API Key)
+
+用法:
+  python content/kit/voiceover.py --script content/publish/ep01/narration.txt --out content/publish/ep01/voice
+  # 生成 voice.mp3 和 voice.srt(字幕由 TTS 引擎同步产出,时间轴天然对齐)
+
+音色:默认 en-US-ChristopherNeural(男声,自然,适合 devlog)
+  换音色:--voice en-US-GuyNeural / en-US-EricNeural;列出全部可用音色:--list-voices
+依赖:pip install edge-tts(见 content/kit/requirements.txt);需要联网
+后期升级:想要更高质量/克隆自己声音,用 ElevenLabs API,把本脚本换成 API 调用即可,CLI 接口不变
+
+旁白稿格式:一行一段,空行分段。不要写 [HOOK] 这类结构标签 —— 它们会被念出来。
+"""
+import argparse
+import asyncio
+import os
+import shutil
+import subprocess
+import sys
+
+DEFAULT_VOICE = "en-US-ChristopherNeural"
+
+
+def _load_script(path: str) -> str:
+    if not os.path.isfile(path):
+        sys.exit(f"找不到旁白稿: {path}")
+    with open(path, encoding="utf-8") as f:
+        lines = [ln.strip() for ln in f]
+    if lines and lines[0].lstrip().startswith("\ufeff"):
+        lines[0] = lines[0].lstrip("\ufeff")
+    text = " ".join(ln for ln in lines if ln)
+    if not text:
+        sys.exit(f"旁白稿是空的: {path}")
+    return text
+
+
+def _ensure_parent(path: str) -> None:
+    parent = os.path.dirname(os.path.abspath(path))
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+
+
+def _try_import_edge_tts():
+    try:
+        import edge_tts  # noqa: F401
+        return edge_tts
+    except ImportError:
+        return None
+
+
+def _render_via_module(edge_tts, text: str, voice: str, rate: str, mp3: str, srt: str) -> None:
+    async def _run() -> None:
+        communicate = edge_tts.Communicate(text, voice, rate=rate)
+        await communicate.save(mp3, srt)
+
+    asyncio.run(_run())
+
+
+def _render_via_cli(text: str, voice: str, rate: str, mp3: str, srt: str) -> None:
+    exe = shutil.which("edge-tts")
+    if exe is None:
+        sys.exit(
+            "缺少依赖: 找不到 edge-tts(既没有 Python 模块,也不在 PATH 上)。\n"
+            "请先安装:  pip install -r content/kit/requirements.txt"
+        )
+    cmd = [exe, "--voice", voice, "--rate", rate,
+           "--text", text, "--write-media", mp3, "--write-subtitles", srt]
+    try:
+        subprocess.run(cmd, check=True)
+    except subprocess.CalledProcessError as e:
+        sys.exit(f"edge-tts 执行失败(退出码 {e.returncode})。请检查网络连接后重试。")
+
+
+def _list_voices(edge_tts) -> None:
+    if edge_tts is not None:
+        async def _run():
+            return await edge_tts.list_voices()
+        voices = asyncio.run(_run())
+        for v in sorted(voices, key=lambda x: x.get("ShortName", "")):
+            print(f"{v.get('ShortName','?'):<40} {v.get('Gender','?'):<8} {v.get('Locale','?')}")
+        return
+
+    exe = shutil.which("edge-tts")
+    if exe is None:
+        sys.exit(
+            "缺少依赖: 找不到 edge-tts。\n"
+            "请先安装:  pip install -r content/kit/requirements.txt"
+        )
+    subprocess.run([exe, "--list-voices"], check=True)
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(
+        description="旁白稿 -> mp3 + srt(Edge 神经网络语音)",
+    )
+    ap.add_argument("--script", help="旁白稿纯文本(一行一段,空行分段)")
+    ap.add_argument("--out", help="输出前缀(不带扩展名),产出 <out>.mp3 与 <out>.srt")
+    ap.add_argument("--voice", default=DEFAULT_VOICE,
+                    help=f"音色,默认 {DEFAULT_VOICE}")
+    ap.add_argument("--rate", default="+0%", help="语速,如 +5%% / -10%%")
+    ap.add_argument("--list-voices", action="store_true",
+                    help="只列出全部可用音色后退出")
+    a = ap.parse_args()
+
+    edge_tts = _try_import_edge_tts()
+
+    if a.list_voices:
+        _list_voices(edge_tts)
+        return
+
+    if not a.script or not a.out:
+        ap.error("需要 --script 和 --out(或使用 --list-voices)")
+
+    text = _load_script(a.script)
+
+    mp3, srt = a.out + ".mp3", a.out + ".srt"
+    _ensure_parent(mp3)
+    _ensure_parent(srt)
+
+    if edge_tts is not None:
+        _render_via_module(edge_tts, text, a.voice, a.rate, mp3, srt)
+    else:
+        _render_via_cli(text, a.voice, a.rate, mp3, srt)
+
+    for path in (mp3, srt):
+        if not os.path.isfile(path):
+            sys.exit(f"引擎已退出但没有产出文件: {path}")
+
+    print(f"配音完成: {mp3}")
+    print(f"字幕完成: {srt}(可直接给 roughcut.py 烧录)")
+
+
+if __name__ == "__main__":
+    main()

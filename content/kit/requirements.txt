@@ -1,0 +1,14 @@
+# content/kit 依赖
+# 安装:  pip install -r content/kit/requirements.txt
+#
+# 只有用到的工具才需要装,缺依赖时对应脚本会给出明确安装提示。
+
+# voiceover.py —— 旁白稿 -> mp3 + srt(免费、无需 API Key,需要联网)
+edge-tts>=6.1.9
+
+# transcribe.py —— 现场口播 -> 字幕(二选一;faster-whisper 更快、更省内存)
+faster-whisper>=1.0.0
+# openai-whisper>=20231117
+
+# 说明:record.py / roughcut.py / clip.py 只依赖 ffmpeg + ffprobe,不需要 pip 包。
+# ffmpeg 必须自行安装并确保 ffmpeg / ffprobe 可被找到(PATH 或用 --ffmpeg 指定)。

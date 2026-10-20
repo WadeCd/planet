@@ -6,6 +6,14 @@
 content/sessions/**/*.mkv
 content/sessions/**/*.mp4
 content/sessions/**/*.flv
+
+# 录制期运行期产物（不入库）
+content/sessions/**/.ffmpeg.log
+content/sessions/**/.recording.pid
+content/sessions/**/.stop-request
+content/sessions/**/take.srt
+content/sessions/**/take.txt
+**/*.tmp
 content/publish/**/*.mkv
 content/publish/**/*.mp4
 content/publish/**/*.mp3
