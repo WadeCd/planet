@@ -50,9 +50,31 @@ def _try_import_edge_tts():
 
 
 def _render_via_module(edge_tts, text: str, voice: str, rate: str, mp3: str, srt: str) -> None:
+    """流式合成：音频写文件，边界事件喂给 SubMaker 生成真正的 SRT。
+
+    注意：不要用 ``Communicate.save(audio, x)`` —— 它的第二个参数是 **metadata(JSONL
+    边界事件)**，不是字幕文件。要得到 SRT 必须自己喂 SubMaker 再取 ``get_srt()``。
+    """
     async def _run() -> None:
         communicate = edge_tts.Communicate(text, voice, rate=rate)
-        await communicate.save(mp3, srt)
+        submaker = edge_tts.SubMaker()
+        fed = 0
+        with open(mp3, "wb") as audio_file:
+            async for chunk in communicate.stream():
+                kind = chunk.get("type")
+                if kind == "audio":
+                    audio_file.write(chunk["data"])
+                elif kind in ("WordBoundary", "SentenceBoundary"):
+                    try:
+                        submaker.feed(chunk)
+                        fed += 1
+                    except ValueError as exc:
+                        # 同一路语音里边界类型理应一致；混合时保留已收事件，不让音频白跑
+                        print(f"警告: 跳过一条边界事件({exc})", file=sys.stderr)
+        with open(srt, "w", encoding="utf-8", newline="\n") as sub_file:
+            sub_file.write(submaker.get_srt())
+        if fed == 0:
+            print("警告: 引擎没有返回任何边界事件，字幕文件是空的。", file=sys.stderr)
 
     asyncio.run(_run())
 
@@ -126,6 +148,19 @@ def main() -> None:
     for path in (mp3, srt):
         if not os.path.isfile(path):
             sys.exit(f"引擎已退出但没有产出文件: {path}")
+
+    # 守卫：确认产出的确实是一份 SRT。
+    # 曾经踩过：把 Communicate.save(audio, metadata) 的第二参数当成字幕，
+    # 结果写出的是 JSONL 边界事件而不是字幕。这里必须挡住，不能静默交付。
+    with open(srt, encoding="utf-8-sig") as f:
+        head = f.read(8192)
+    if not head.strip():
+        sys.exit(f"字幕文件是空的（引擎没返回边界事件）: {srt}")
+    if "-->" not in head:
+        sys.exit(
+            f"产出的字幕不是 SRT 格式（找不到 '-->' 时间轴）: {srt}\n"
+            "  首行: %s" % head.strip().splitlines()[0][:120]
+        )
 
     print(f"配音完成: {mp3}")
     print(f"字幕完成: {srt}(可直接给 roughcut.py 烧录)")

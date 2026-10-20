@@ -1,0 +1,124 @@
+1
+00:00:00,100 --> 00:00:03,425
+This is a planet you can walk all the way around.
+
+2
+00:00:03,375 --> 00:00:07,600
+And I didn't write most of the code — an AI agent did.
+
+3
+00:00:07,600 --> 00:00:09,737
+I'm a web developer.
+
+4
+00:00:09,737 --> 00:00:12,375
+I've never made a 3D game.
+
+5
+00:00:12,375 --> 00:00:19,800
+So I gave an AI one job: build gravity that pulls you toward the center of a tiny planet, like The Little Prince.
+
+6
+00:00:19,800 --> 00:00:21,675
+Here's what happened.
+
+7
+00:00:21,675 --> 00:00:25,262
+In a normal game, down is just... down.
+
+8
+00:00:25,262 --> 00:00:29,462
+But on a tiny planet, down is different everywhere you stand.
+
+9
+00:00:29,462 --> 00:00:35,112
+Your "up" has to point away from the planet's center, and it changes with every single step.
+
+10
+00:00:35,112 --> 00:00:41,700
+Get this wrong, and your character either falls off into space, or walks like he's had too much to drink.
+
+11
+00:00:41,700 --> 00:00:43,775
+So here's the setup.
+
+12
+00:00:43,775 --> 00:00:47,537
+Godot 4, one sphere, one character.
+
+13
+00:00:47,537 --> 00:00:54,925
+I wrote a design doc — just a markdown file explaining exactly what I wanted — and handed it to a coding agent.
+
+14
+00:00:54,925 --> 00:00:56,862
+Build me a planet.
+
+15
+00:00:56,862 --> 00:00:59,487
+Make gravity point at its heart.
+
+16
+00:00:59,487 --> 00:01:04,462
+First try: the agent gave me normal gravity... and a round planet.
+
+17
+00:01:04,462 --> 00:01:09,125
+The character slid right off, like the whole planet was made of ice.
+
+18
+00:01:09,125 --> 00:01:13,762
+Second try: he kept flipping upside down near the south pole.
+
+19
+00:01:13,762 --> 00:01:17,437
+I'm not gonna lie — this part took the longest.
+
+20
+00:01:17,437 --> 00:01:20,287
+The fix turned out to be one idea.
+
+21
+00:01:20,287 --> 00:01:24,987
+Every frame, your "up" is the direction from the planet's center to you.
+
+22
+00:01:24,987 --> 00:01:26,987
+Rotate to match it.
+
+23
+00:01:26,987 --> 00:01:29,512
+Gravity always points home.
+
+24
+00:01:29,512 --> 00:01:33,587
+Once the agent got that one idea — everything clicked.
+
+25
+00:01:33,587 --> 00:01:35,075
+And now...
+
+26
+00:01:35,075 --> 00:01:37,562
+I can walk over the horizon.
+
+27
+00:01:37,562 --> 00:01:39,525
+It sounds small.
+
+28
+00:01:39,525 --> 00:01:42,862
+But this is the foundation of the entire game.
+
+29
+00:01:42,862 --> 00:01:48,975
+Every tree, every house, every fox I add later — all of it stands on this math.
+
+30
+00:01:48,975 --> 00:01:57,275
+Next time, I'll ask the AI to scatter trees and rocks across the planet — without them floating in the air or sinking into the ground.
+
+31
+00:01:57,275 --> 00:02:02,400
+Subscribe if you want to watch a web developer accidentally become a game developer.
+
