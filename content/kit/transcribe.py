@@ -115,27 +115,63 @@ def ensure_ffmpeg_on_path(ffmpeg_path) -> None:
 
 # ---------------------------------------------------------------- 运行
 
+# CUDA 运行库缺失时 ctranslate2 仍会报告 cuda 可用（nvcuda.dll 是显卡驱动自带的），
+# 真正的失败会推迟到第一次计算才抛，表现为加载 cublas/cudart 失败。
+_CUDA_FAILURE_HINTS = (
+    "cublas", "cudart", "cudnn", "cuda", "not found or cannot be loaded",
+)
+
+
+def _looks_like_cuda_failure(exc: Exception) -> bool:
+    text = str(exc).lower()
+    return any(hint in text for hint in _CUDA_FAILURE_HINTS)
+
+
 def run_faster_whisper(audio_path: str, args) -> list:
     from faster_whisper import WhisperModel
 
-    model = WhisperModel(
-        args.model,
-        device=args.device,
-        compute_type=args.compute_type,
-        download_root=args.model_dir,
-    )
-    segments, info = model.transcribe(
-        audio_path,
-        language=args.language,
-        beam_size=args.beam_size,
-        vad_filter=not args.no_vad,
-    )
-    eprint("提示: faster-whisper 识别语言=%s(概率 %.2f)"
-           % (getattr(info, "language", args.language), getattr(info, "language_probability", 0.0)))
-    result = []
-    for segment in segments:
-        result.append((float(segment.start), float(segment.end), (segment.text or "").strip()))
-    return result
+    def _attempt(device: str, compute_type: str) -> list:
+        model = WhisperModel(
+            args.model,
+            device=device,
+            compute_type=compute_type,
+            download_root=args.model_dir,
+        )
+        segments, info = model.transcribe(
+            audio_path,
+            language=args.language,
+            beam_size=args.beam_size,
+            vad_filter=not args.no_vad,
+        )
+        if args.language:
+            eprint("提示: faster-whisper 语言=%s（--language 显式指定，不是检测结果）" % args.language)
+        else:
+            eprint("提示: faster-whisper 检测语言=%s(概率 %.2f)"
+                   % (getattr(info, "language", "?"), getattr(info, "language_probability", 0.0)))
+        eprint("提示: faster-whisper 设备=%s compute_type=%s" % (device, compute_type))
+        # 必须在此处就地把 segments 取完：CUDA 运行库是懒加载的，
+        # 只有真正开始计算才会暴露 "cublas64_12.dll is not found" 这类错误。
+        result = []
+        for segment in segments:
+            result.append((float(segment.start), float(segment.end), (segment.text or "").strip()))
+        return result
+
+    try:
+        return _attempt(args.device, args.compute_type)
+    except Exception as exc:  # noqa: BLE001 - 下面按类型分流
+        if _looks_like_cuda_failure(exc):
+            if args.device == "auto":
+                eprint(
+                    "警告: device=auto 解析到了 CUDA，但 CUDA 运行库加载失败（%s）。\n"
+                    "      已自动回退 CPU 重试；想固定行为请显式加 --device cpu。" % exc
+                )
+                return _attempt("cpu", "default")
+            raise RuntimeError(
+                "%s\n提示: 这台机器可能只装了显卡驱动、没有 CUDA Toolkit"
+                "（缺 cublas64_12.dll 等运行库）。请改用 --device cpu，"
+                "或安装 CUDA 12 运行库。" % exc
+            ) from exc
+        raise
 
 
 def run_whisper(audio_path: str, args) -> list:

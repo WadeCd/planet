@@ -151,6 +151,9 @@ python content/kit/clip.py --input long.mp4 --start 12.5 --end 40.0 --out conten
 - **默认不覆盖**：所有产物已存在时默认报错退出，需显式 `--overwrite`。
 - **烧字幕的路径转义**：Windows 盘符冒号在 ffmpeg filtergraph 里要写成 `subtitles=filename='E\:/path/to.srt'`（单引号包住 + 双反斜杠转义）；脚本已处理。
 - **响度归一化**：`loudnorm` 单遍模式内部 lookahead 会让音频时间戳非单调（aac 报 `Queue input is backward in time`、成片音频比视频长 ~80ms），脚本在其后接了 `aresample=async=1:first_pts=0` 归一化时间戳。
+- **语音识别的设备选择（重要）**：`transcribe.py` 的 `--device auto`（默认）会先尝试 CUDA。但 **ctranslate2 只凭显卡驱动提供的 `nvcuda.dll` 就报告 CUDA 可用**；若本机没装 CUDA Toolkit（缺 `cublas64_12.dll` 等），真正的失败会推迟到第一次计算才抛。脚本已处理：`auto` 命中该错误时**自动回退 CPU 重试**；显式 `--device cuda` 失败时会给出"请改用 `--device cpu`"的可读提示。想固定行为就显式写 `--device cpu`。
+- **模型缓存**：faster-whisper 首次运行会下载模型到 `~/.cache/huggingface`（`base` 约 148 MB），需要联网；之后离线可用。
+- **TTS 结果不可字节复现**：Edge 合成是远程服务，同一份稿子每次请求返回的音频字节不同（长度一致）。因此 `voice.mp3` 不能按字节复现，重新生成会让 `voice.srt` 出现微小 diff；`voiceover.py` 已对网络超时做 3 次有限重试，并把异常翻译成可读原因而不是甩堆栈。
 - **性能**：`roughcut.py` 各段用 filter 级 `trim` 在原始时间轴上定位（保精度），**每个 segment 会把整段录像解码一遍**；长录像多段会明显变慢。
 
 ## 3. 铁律（脚本层面必须遵守）

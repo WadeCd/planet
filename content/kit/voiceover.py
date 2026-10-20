@@ -18,8 +18,19 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 
 DEFAULT_VOICE = "en-US-ChristopherNeural"
+RENDER_ATTEMPTS = 3
+
+
+def _force_utf8_stdio() -> None:
+    """控制台代码页可能是 GBK/CP936；统一按 UTF-8 输出，避免中文经管道乱码。"""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:  # noqa: BLE001 - 被重定向成非文本流时忽略
+            pass
 
 
 def _load_script(path: str) -> str:
@@ -140,10 +151,33 @@ def main() -> None:
     _ensure_parent(mp3)
     _ensure_parent(srt)
 
-    if edge_tts is not None:
-        _render_via_module(edge_tts, text, a.voice, a.rate, mp3, srt)
-    else:
-        _render_via_cli(text, a.voice, a.rate, mp3, srt)
+    # 合成：合成服务是远程 websocket，偶发连接超时；做有限次重试，
+    # 并把异常翻译成可读原因，避免甩出 Python 堆栈。
+    last_error = None
+    for attempt in range(1, RENDER_ATTEMPTS + 1):
+        try:
+            if edge_tts is not None:
+                _render_via_module(edge_tts, text, a.voice, a.rate, mp3, srt)
+            else:
+                _render_via_cli(text, a.voice, a.rate, mp3, srt)
+            last_error = None
+            break
+        except Exception as exc:  # noqa: BLE001 - SystemExit 不在此列，会直接穿过
+            last_error = exc
+            if attempt < RENDER_ATTEMPTS:
+                print(
+                    f"警告: 第 {attempt}/{RENDER_ATTEMPTS} 次合成失败"
+                    f"（{type(exc).__name__}: {exc}），{attempt * 2}s 后重试…",
+                    file=sys.stderr,
+                )
+                time.sleep(attempt * 2)
+
+    if last_error is not None:
+        sys.exit(
+            f"配音失败（已重试 {RENDER_ATTEMPTS} 次）: {type(last_error).__name__}: {last_error}\n"
+            "  常见原因: 网络不通/连接被拦（合成服务是 wss://speech.platform.bing.com）、"
+            "或临时限流。请检查网络后重试。"
+        )
 
     for path in (mp3, srt):
         if not os.path.isfile(path):
@@ -167,4 +201,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    _force_utf8_stdio()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("已中断。", file=sys.stderr)
+        sys.exit(130)
