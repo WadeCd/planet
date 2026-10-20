@@ -1,0 +1,13 @@
+This is a planet you can walk all the way around. And I didn't write most of the code — an AI agent did. I'm a web developer. I've never made a 3D game. So I gave an AI one job: build gravity that pulls you toward the center of a tiny planet, like The Little Prince. Here's what happened.
+
+In a normal game, down is just... down. But on a tiny planet, down is different everywhere you stand. Your "up" has to point away from the planet's center, and it changes with every single step. Get this wrong, and your character either falls off into space, or walks like he's had too much to drink.
+
+So here's the setup. Godot 4, one sphere, one character. I wrote a design doc — just a markdown file explaining exactly what I wanted — and handed it to a coding agent. Build me a planet. Make gravity point at its heart.
+
+First try: the agent gave me normal gravity... and a round planet. The character slid right off, like the whole planet was made of ice. Second try: he kept flipping upside down near the south pole. I'm not gonna lie — this part took the longest.
+
+The fix turned out to be one idea. Every frame, your "up" is the direction from the planet's center to you. Rotate to match it. Gravity always points home. Once the agent got that one idea — everything clicked.
+
+And now... I can walk over the horizon. It sounds small. But this is the foundation of the entire game. Every tree, every house, every fox I add later — all of it stands on this math.
+
+Next time, I'll ask the AI to scatter trees and rocks across the planet — without them floating in the air or sinking into the ground. Subscribe if you want to watch a web developer accidentally become a game developer.

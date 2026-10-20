@@ -1,0 +1,3 @@
+# 会话目录占位文件。
+# record.py start --dir content/sessions/<日期>-ep<期数> 会在这里创建会话目录。
+# 录像 raw.mkv 与成品媒体已在 .gitignore 中排除，markers.json / 字幕 / 文案仍然入库。
