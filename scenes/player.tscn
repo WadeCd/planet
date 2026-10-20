@@ -1,0 +1,153 @@
+[gd_scene format=3 uid="uid://player_scene_01"]
+
+[ext_resource type="Script" path="res://scripts/player.gd" id="1_player"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+radius = 0.45
+height = 1.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_suit"]
+albedo_color = Color(0.92, 0.94, 0.96, 1)
+roughness = 0.35
+metallic = 0.1
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
+material = SubResource("StandardMaterial3D_suit")
+radius = 0.4
+height = 1.2
+radial_segments = 24
+rings = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_visor"]
+albedo_color = Color(0.05, 0.65, 0.95, 1)
+metallic = 0.85
+roughness = 0.1
+emission_enabled = true
+emission = Color(0.1, 0.7, 1, 1)
+emission_energy_multiplier = 1.8
+
+[sub_resource type="SphereMesh" id="SphereMesh_visor"]
+material = SubResource("StandardMaterial3D_visor")
+radius = 0.25
+height = 0.32
+radial_segments = 16
+rings = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pack"]
+albedo_color = Color(0.2, 0.25, 0.32, 1)
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_pack"]
+material = SubResource("StandardMaterial3D_pack")
+size = Vector3(0.5, 0.55, 0.25)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_nozzle"]
+material = SubResource("StandardMaterial3D_pack")
+top_radius = 0.08
+bottom_radius = 0.06
+height = 0.15
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_thruster"]
+direction = Vector3(0, -1, 0)
+spread = 15.0
+initial_velocity_min = 3.0
+initial_velocity_max = 5.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.08
+scale_max = 0.18
+color = Color(0.2, 0.85, 1, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_particle"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.25, 0.85, 1, 0.9)
+
+[sub_resource type="SphereMesh" id="SphereMesh_particle"]
+material = SubResource("StandardMaterial3D_particle")
+radius = 0.1
+height = 0.2
+radial_segments = 8
+rings = 4
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_dust"]
+direction = Vector3(0, 0.5, 0)
+spread = 80.0
+initial_velocity_min = 1.0
+initial_velocity_max = 2.5
+gravity = Vector3(0, 0, 0)
+scale_min = 0.1
+scale_max = 0.25
+color = Color(0.85, 0.85, 0.85, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dust"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+
+[sub_resource type="SphereMesh" id="SphereMesh_dust"]
+material = SubResource("StandardMaterial3D_dust")
+radius = 0.15
+height = 0.3
+radial_segments = 6
+rings = 4
+
+[node name="Player" type="CharacterBody3D"]
+script = ExtResource("1_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CapsuleShape3D_player")
+
+[node name="Visuals" type="Node3D" parent="."]
+
+[node name="BodyMesh" type="MeshInstance3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+mesh = SubResource("CapsuleMesh_body")
+
+[node name="VisorMesh" type="MeshInstance3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.92, -0.26)
+mesh = SubResource("SphereMesh_visor")
+
+[node name="Backpack" type="Node3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0.3)
+
+[node name="PackMesh" type="MeshInstance3D" parent="Visuals/Backpack"]
+mesh = SubResource("BoxMesh_pack")
+
+[node name="ThrusterLeft" type="Node3D" parent="Visuals/Backpack"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.16, -0.25, 0.05)
+
+[node name="Nozzle" type="MeshInstance3D" parent="Visuals/Backpack/ThrusterLeft"]
+mesh = SubResource("CylinderMesh_nozzle")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="Visuals/Backpack/ThrusterLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+emitting = false
+amount = 12
+lifetime = 0.25
+process_material = SubResource("ParticleProcessMaterial_thruster")
+draw_pass_1 = SubResource("SphereMesh_particle")
+
+[node name="ThrusterRight" type="Node3D" parent="Visuals/Backpack"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.16, -0.25, 0.05)
+
+[node name="Nozzle" type="MeshInstance3D" parent="Visuals/Backpack/ThrusterRight"]
+mesh = SubResource("CylinderMesh_nozzle")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="Visuals/Backpack/ThrusterRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+emitting = false
+amount = 12
+lifetime = 0.25
+process_material = SubResource("ParticleProcessMaterial_thruster")
+draw_pass_1 = SubResource("SphereMesh_particle")
+
+[node name="DustParticles" type="GPUParticles3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+emitting = false
+amount = 8
+lifetime = 0.4
+explosiveness = 0.2
+process_material = SubResource("ParticleProcessMaterial_dust")
+draw_pass_1 = SubResource("SphereMesh_dust")

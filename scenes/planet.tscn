@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://planet_scene_01"]
+
+[ext_resource type="Script" path="res://scripts/planet.gd" id="1_planet"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_1"]
+radius = 20.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_1"]
+radius = 20.0
+height = 40.0
+radial_segments = 64
+rings = 32
+
+[sub_resource type="SphereMesh" id="SphereMesh_2"]
+radius = 21.6
+height = 43.2
+radial_segments = 48
+rings = 24
+
+[node name="Planet" type="StaticBody3D"]
+script = ExtResource("1_planet")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_1")
+
+[node name="SurfaceMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_1")
+
+[node name="AtmosphereMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_2")

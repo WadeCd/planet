@@ -1,0 +1,78 @@
+[gd_scene format=3 uid="uid://launch_pad_01"]
+
+[ext_resource type="Script" path="res://scripts/launch_pad.gd" id="1_pad"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_pad"]
+height = 1.2
+radius = 2.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_base"]
+albedo_color = Color(0.18, 0.22, 0.28, 1)
+metallic = 0.8
+roughness = 0.3
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_base"]
+material = SubResource("StandardMaterial3D_base")
+top_radius = 2.0
+bottom_radius = 2.2
+height = 0.3
+radial_segments = 32
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ring"]
+albedo_color = Color(0.1, 0.8, 1, 1)
+emission_enabled = true
+emission = Color(0.1, 0.85, 1, 1)
+emission_energy_multiplier = 2.5
+
+[sub_resource type="TorusMesh" id="TorusMesh_ring"]
+material = SubResource("StandardMaterial3D_ring")
+inner_radius = 1.2
+outer_radius = 1.5
+rings = 24
+ring_segments = 12
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_beam"]
+direction = Vector3(0, 1, 0)
+spread = 10.0
+initial_velocity_min = 4.0
+initial_velocity_max = 8.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.08
+scale_max = 0.2
+color = Color(0.2, 0.9, 1, 0.75)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_beam_pt"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+emission_enabled = true
+emission = Color(0.2, 0.9, 1, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_beam_pt"]
+material = SubResource("StandardMaterial3D_beam_pt")
+radius = 0.1
+height = 0.2
+
+[node name="LaunchPad" type="Area3D"]
+script = ExtResource("1_pad")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+shape = SubResource("CylinderShape3D_pad")
+
+[node name="Visuals" type="Node3D" parent="."]
+
+[node name="BaseMesh" type="MeshInstance3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+mesh = SubResource("CylinderMesh_base")
+
+[node name="RingMesh" type="MeshInstance3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+mesh = SubResource("TorusMesh_ring")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+amount = 16
+lifetime = 0.8
+process_material = SubResource("ParticleProcessMaterial_beam")
+draw_pass_1 = SubResource("SphereMesh_beam_pt")

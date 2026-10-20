@@ -1,0 +1,207 @@
+[gd_scene format=3 uid="uid://main_scene_01"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://planet_scene_01" path="res://scenes/planet.tscn" id="2_planet"]
+[ext_resource type="PackedScene" uid="uid://player_scene_01" path="res://scenes/player.tscn" id="3_player"]
+[ext_resource type="PackedScene" uid="uid://camera_rig_01" path="res://scenes/camera_rig.tscn" id="4_cam"]
+[ext_resource type="PackedScene" uid="uid://launch_pad_01" path="res://scenes/launch_pad.tscn" id="5_pad"]
+[ext_resource type="PackedScene" uid="uid://collectible_scene_01" path="res://scenes/collectible.tscn" id="6_star"]
+[ext_resource type="PackedScene" uid="uid://hud_scene_01" path="res://scenes/hud.tscn" id="7_hud"]
+[ext_resource type="Script" path="res://scripts/gravity_manager.gd" id="8_grav"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_cosmic"]
+sky_top_color = Color(0.04, 0.05, 0.14, 1)
+sky_horizon_color = Color(0.08, 0.12, 0.25, 1)
+sky_curve = 0.09
+ground_bottom_color = Color(0.02, 0.03, 0.08, 1)
+ground_horizon_color = Color(0.06, 0.08, 0.18, 1)
+sun_angle_max = 20.0
+use_debanding = false
+
+[sub_resource type="Sky" id="Sky_cosmic"]
+sky_material = SubResource("ProceduralSkyMaterial_cosmic")
+
+[sub_resource type="Environment" id="Environment_cosmic"]
+background_mode = 2
+sky = SubResource("Sky_cosmic")
+ambient_light_source = 2
+ambient_light_color = Color(0.15, 0.18, 0.28, 1)
+ambient_light_energy = 0.8
+tonemap_mode = 3
+glow_enabled = true
+glow_intensity = 0.6
+glow_bloom = 0.25
+glow_blend_mode = 0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_monolith"]
+albedo_color = Color(0.35, 0.38, 0.42, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="BoxMesh_pillar"]
+material = SubResource("StandardMaterial3D_monolith")
+size = Vector3(0.8, 3.2, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_arch_top"]
+material = SubResource("StandardMaterial3D_monolith")
+size = Vector3(3.2, 0.7, 0.9)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_crystal"]
+albedo_color = Color(0.8, 0.2, 1, 1)
+roughness = 0.1
+metallic = 0.2
+emission_enabled = true
+emission = Color(0.85, 0.25, 1, 1)
+emission_energy_multiplier = 2.2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_spire"]
+material = SubResource("StandardMaterial3D_crystal")
+top_radius = 0.05
+bottom_radius = 0.6
+height = 3.5
+radial_segments = 6
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="GravityManager" type="Node" parent="."]
+script = ExtResource("8_grav")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_cosmic")
+
+[node name="SunLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 80, 120, 80)
+light_color = Color(1, 0.96, 0.88, 1)
+light_energy = 1.3
+shadow_enabled = true
+
+[node name="NebulaFillLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.707107, 0.5, -0.5, 0, 0.707107, 0.707107, 0.707107, 0.5, -0.5, -80, -60, -80)
+light_color = Color(0.3, 0.5, 0.9, 1)
+light_energy = 0.45
+
+[node name="Planets" type="Node3D" parent="."]
+
+[node name="PlanetOasis" parent="Planets" instance=ExtResource("2_planet")]
+planet_name = "绿洲星 (Oasis Planet)"
+radius = 20.0
+gravity_strength = 18.0
+gravity_radius = 55.0
+surface_color = Color(0.24, 0.65, 0.36, 1)
+atmosphere_color = Color(0.3, 0.75, 1, 0.22)
+
+[node name="AncientArch" type="Node3D" parent="Planets/PlanetOasis"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, -5)
+
+[node name="PillarL" type="MeshInstance3D" parent="Planets/PlanetOasis/AncientArch"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 1.6, 0)
+mesh = SubResource("BoxMesh_pillar")
+
+[node name="PillarR" type="MeshInstance3D" parent="Planets/PlanetOasis/AncientArch"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 1.6, 0)
+mesh = SubResource("BoxMesh_pillar")
+
+[node name="Lintel" type="MeshInstance3D" parent="Planets/PlanetOasis/AncientArch"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.4, 0)
+mesh = SubResource("BoxMesh_arch_top")
+
+[node name="PlanetMoon" parent="Planets" instance=ExtResource("2_planet")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 85, 20, 0)
+planet_name = "赤岩卫星 (Crimson Moon)"
+radius = 13.0
+gravity_strength = 11.0
+gravity_radius = 42.0
+surface_color = Color(0.78, 0.36, 0.22, 1)
+atmosphere_color = Color(1, 0.55, 0.3, 0.15)
+spin_speed = 0.025
+
+[node name="PlanetComet" parent="Planets" instance=ExtResource("2_planet")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 75, -60)
+planet_name = "极光冰晶彗星 (Aurora Crystal Comet)"
+radius = 9.0
+gravity_strength = 8.0
+gravity_radius = 35.0
+surface_color = Color(0.2, 0.72, 0.95, 1)
+atmosphere_color = Color(0.75, 0.3, 1, 0.3)
+spin_speed = 0.04
+
+[node name="CrystalCluster" type="Node3D" parent="Planets/PlanetComet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9, 0)
+
+[node name="Crystal1" type="MeshInstance3D" parent="Planets/PlanetComet/CrystalCluster"]
+transform = Transform3D(0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0, 0, 1, 0, 1.6, 0)
+mesh = SubResource("CylinderMesh_spire")
+
+[node name="Crystal2" type="MeshInstance3D" parent="Planets/PlanetComet/CrystalCluster"]
+transform = Transform3D(0.866025, 0.353553, 0.353553, -0.5, 0.612372, 0.612372, 0, -0.707107, 0.707107, 0.8, 1.4, 0.4)
+mesh = SubResource("CylinderMesh_spire")
+
+[node name="Crystal3" type="MeshInstance3D" parent="Planets/PlanetComet/CrystalCluster"]
+transform = Transform3D(0.707107, 0, -0.707107, 0.353553, 0.866025, 0.353553, 0.612372, -0.5, 0.612372, -0.7, 1.3, -0.5)
+mesh = SubResource("CylinderMesh_spire")
+
+[node name="LaunchPads" type="Node3D" parent="."]
+
+[node name="PadOasisToMoon" parent="LaunchPads" node_paths=PackedStringArray("target_planet") instance=ExtResource("5_pad")]
+transform = Transform3D(0.196, -0.98, 0, 0.98, 0.196, 0, 0, 0, 1, 19.6, 3.9, 0)
+target_planet = NodePath("../../Planets/PlanetMoon")
+launch_power = 48.0
+arc_height = 14.0
+
+[node name="PadMoonToComet" parent="LaunchPads" node_paths=PackedStringArray("target_planet") instance=ExtResource("5_pad")]
+transform = Transform3D(0.85, 0, 0.52, 0.31, 0.8, -0.51, -0.42, 0.59, 0.68, 77.2, 30.5, -9.4)
+target_planet = NodePath("../../Planets/PlanetComet")
+launch_power = 46.0
+arc_height = 12.0
+
+[node name="PadCometToOasis" parent="LaunchPads" node_paths=PackedStringArray("target_planet") instance=ExtResource("5_pad")]
+transform = Transform3D(0.8, -0.4, 0.44, -0.52, -0.83, 0.19, 0.29, -0.38, -0.87, 36.3, 68.3, -54.4)
+target_planet = NodePath("../../Planets/PlanetOasis")
+launch_power = 48.0
+arc_height = 15.0
+
+[node name="Collectibles" type="Node3D" parent="."]
+
+[node name="Star_Oasis_1" parent="Collectibles" instance=ExtResource("6_star")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 21.0, 3.0)
+
+[node name="Star_Oasis_2" parent="Collectibles" instance=ExtResource("6_star")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.7, 14.7, 0)
+
+[node name="Star_Oasis_3" parent="Collectibles" instance=ExtResource("6_star")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.7, 14.7, 0)
+
+[node name="Star_Oasis_4_SouthPole" parent="Collectibles" instance=ExtResource("6_star")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -21.0, 0)
+
+[node name="Star_Oasis_5_Equator" parent="Collectibles" instance=ExtResource("6_star")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 21.0)
+
+[node name="Star_Moon_1" parent="Collectibles" instance=ExtResource("6_star")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 85, 33.8, 0)
+
+[node name="Star_Moon_2" parent="Collectibles" instance=ExtResource("6_star")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 98.8, 20, 0)
+
+[node name="Star_Moon_3" parent="Collectibles" instance=ExtResource("6_star")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 71.2, 20, 0)
+
+[node name="Star_Moon_4" parent="Collectibles" instance=ExtResource("6_star")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 85, 20, 13.8)
+
+[node name="Star_Comet_1_Peak" parent="Collectibles" instance=ExtResource("6_star")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 87.5, -60)
+
+[node name="Star_Comet_2" parent="Collectibles" instance=ExtResource("6_star")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 75, -69.8)
+
+[node name="Star_Comet_3" parent="Collectibles" instance=ExtResource("6_star")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.2, 75, -60)
+
+[node name="Player" parent="." instance=ExtResource("3_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20.8, 0)
+
+[node name="CameraRig" parent="." instance=ExtResource("4_cam")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20.8, 0)
+
+[node name="HUD" parent="." instance=ExtResource("7_hud")]

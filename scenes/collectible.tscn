@@ -1,0 +1,77 @@
+[gd_scene format=3 uid="uid://collectible_scene_01"]
+
+[ext_resource type="Script" path="res://scripts/collectible.gd" id="1_star"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_star"]
+radius = 0.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_star"]
+albedo_color = Color(1, 0.88, 0.2, 1)
+metallic = 0.6
+roughness = 0.2
+emission_enabled = true
+emission = Color(1, 0.82, 0.15, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_core"]
+material = SubResource("StandardMaterial3D_star")
+radius = 0.35
+height = 0.7
+radial_segments = 6
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ring"]
+transparency = 1
+albedo_color = Color(1, 0.95, 0.5, 0.6)
+emission_enabled = true
+emission = Color(1, 0.9, 0.4, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="TorusMesh" id="TorusMesh_ring"]
+material = SubResource("StandardMaterial3D_ring")
+inner_radius = 0.45
+outer_radius = 0.55
+rings = 16
+ring_segments = 8
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_spark"]
+emission_shape = 1
+emission_sphere_radius = 0.4
+spread = 180.0
+initial_velocity_min = 0.2
+initial_velocity_max = 0.6
+gravity = Vector3(0, 0, 0)
+scale_min = 0.04
+scale_max = 0.1
+color = Color(1, 0.95, 0.4, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sparkle"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+emission_enabled = true
+emission = Color(1, 0.9, 0.3, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_sparkle"]
+material = SubResource("StandardMaterial3D_sparkle")
+radius = 0.05
+height = 0.1
+
+[node name="Collectible" type="Area3D"]
+script = ExtResource("1_star")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_star")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_core")
+
+[node name="EnergyRing" type="MeshInstance3D" parent="MeshInstance3D"]
+transform = Transform3D(1, 0, 0, 0, 0.866025, -0.5, 0, 0.5, 0.866025, 0, 0, 0)
+mesh = SubResource("TorusMesh_ring")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+amount = 8
+lifetime = 0.8
+process_material = SubResource("ParticleProcessMaterial_spark")
+draw_pass_1 = SubResource("SphereMesh_sparkle")

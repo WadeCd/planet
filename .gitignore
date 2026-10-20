@@ -1,0 +1,16 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# 录像/成品等大体积媒体不入库（markers.json、字幕稿、文案仍然入库）
+content/sessions/**/*.mkv
+content/sessions/**/*.mp4
+content/sessions/**/*.flv
+content/publish/**/*.mkv
+content/publish/**/*.mp4
+content/publish/**/*.mp3
+content/publish/**/*.wav
+
+# Python
+__pycache__/
+*.pyc
