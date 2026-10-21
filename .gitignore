@@ -6,6 +6,10 @@
 content/sessions/**/*.mkv
 content/sessions/**/*.mp4
 content/sessions/**/*.flv
+content/publish/**/*.mkv
+content/publish/**/*.mp4
+content/publish/**/*.mp3
+content/publish/**/*.wav
 
 # å½•åˆ¶æœŸè¿è¡ŒæœŸäº§ç‰©ï¼ˆä¸å…¥åº“ï¼‰
 content/sessions/**/.ffmpeg.log
@@ -14,14 +18,13 @@ content/sessions/**/.stop-request
 content/sessions/**/take.srt
 content/sessions/**/take.txt
 **/*.tmp
-content/publish/**/*.mkv
-content/publish/**/*.mp4
-content/publish/**/*.mp3
-content/publish/**/*.wav
+
+# Godot ä¼šä¸ºå…¥åº“çš„éŸ³é¢‘/åª’ä½“ç”Ÿæˆ .importï¼›è¢«å¿½ç•¥çš„åª’ä½“å…¶ .import ä¸€å¹¶å¿½ç•¥
+content/publish/**/*.mp3.import
+
+# æœ¬åœ°å·¥ä½œæ–‡ä»¶ï¼ˆä¸è¿›ä»“åº“ï¼‰
+task-load/
 
 # Python
 __pycache__/
 *.pyc
-
-# Godot »áÎªÈë¿âµÄÒôÆµ/Ã½ÌåÉú³É .import£»±»ºöÂÔµÄÃ½ÌåÆä .import Ò»²¢ºöÂÔ
-content/publish/**/*.mp3.import
