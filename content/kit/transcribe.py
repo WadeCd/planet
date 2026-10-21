@@ -30,10 +30,10 @@ EXIT_MISSING_ENGINE = 3
 EXIT_NO_SPEECH = 4
 
 INSTALL_HINT = (
-    "未找到可用的语音识别引擎（faster-whisper / openai-whisper）。\n"
-    "请任选一种安装后重试:\n"
-    "    pip install faster-whisper     # 推荐：更快、更省内存\n"
-    "    pip install openai-whisper     # 备选：需要 ffmpeg 在 PATH 上\n"
+    "No usable speech recognition engine found (faster-whisper / openai-whisper).\n"
+    "Install either one, then try again:\n"
+    "    pip install faster-whisper     # recommended: faster and lighter on memory\n"
+    "    pip install openai-whisper     # alternative: requires ffmpeg on PATH\n"
 )
 
 FFMPEG_FALLBACKS = [
@@ -57,7 +57,7 @@ def _force_utf8_stdio() -> None:
 
 
 def die(message: str, code: int = EXIT_RUNTIME) -> "NoReturn":  # type: ignore[name-defined]
-    eprint("错误: %s" % message)
+    eprint("Error: %s" % message)
     sys.exit(code)
 
 
@@ -76,7 +76,7 @@ def detect_engine():
         return "whisper", None
     except Exception as exc:  # noqa: BLE001
         reasons.append("whisper: %s" % exc)
-    return None, "; ".join(reasons) or "两个模块都不可导入"
+    return None, "; ".join(reasons) or "neither module could be imported"
 
 
 def resolve_ffmpeg(explicit=None):
@@ -144,11 +144,11 @@ def run_faster_whisper(audio_path: str, args) -> list:
             vad_filter=not args.no_vad,
         )
         if args.language:
-            eprint("提示: faster-whisper 语言=%s（--language 显式指定，不是检测结果）" % args.language)
+            eprint("Note: faster-whisper language=%s (--language was set explicitly, not detected)" % args.language)
         else:
-            eprint("提示: faster-whisper 检测语言=%s(概率 %.2f)"
+            eprint("Note: faster-whisper detected language=%s (probability %.2f)"
                    % (getattr(info, "language", "?"), getattr(info, "language_probability", 0.0)))
-        eprint("提示: faster-whisper 设备=%s compute_type=%s" % (device, compute_type))
+        eprint("Note: faster-whisper device=%s compute_type=%s" % (device, compute_type))
         # 必须在此处就地把 segments 取完：CUDA 运行库是懒加载的，
         # 只有真正开始计算才会暴露 "cublas64_12.dll is not found" 这类错误。
         result = []
@@ -162,14 +162,14 @@ def run_faster_whisper(audio_path: str, args) -> list:
         if _looks_like_cuda_failure(exc):
             if args.device == "auto":
                 eprint(
-                    "警告: device=auto 解析到了 CUDA，但 CUDA 运行库加载失败（%s）。\n"
-                    "      已自动回退 CPU 重试；想固定行为请显式加 --device cpu。" % exc
+                    "Warning: device=auto resolved to CUDA, but the CUDA runtime libraries failed to load (%s).\n"
+                    "      Falling back to CPU and retrying; pass --device cpu to pin this down." % exc
                 )
                 return _attempt("cpu", "default")
             raise RuntimeError(
-                "%s\n提示: 这台机器可能只装了显卡驱动、没有 CUDA Toolkit"
-                "（缺 cublas64_12.dll 等运行库）。请改用 --device cpu，"
-                "或安装 CUDA 12 运行库。" % exc
+                "%s\nNote: this machine may have only a GPU driver and no CUDA Toolkit"
+                " (missing cublas64_12.dll and similar runtime libraries). Use --device cpu, "
+                "or install the CUDA 12 runtime libraries." % exc
             ) from exc
         raise
 
@@ -230,48 +230,48 @@ def positive_int(text: str) -> int:
     try:
         value = int(text)
     except ValueError:
-        raise argparse.ArgumentTypeError("必须是整数: %r" % text)
+        raise argparse.ArgumentTypeError("must be an integer: %r" % text)
     if value <= 0:
-        raise argparse.ArgumentTypeError("必须大于 0: %r" % text)
+        raise argparse.ArgumentTypeError("must be greater than 0: %r" % text)
     return value
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="transcribe.py",
-        description="现场口播转字幕：输出 <out>.srt 与 <out>.txt",
+        description="Transcribe live narration into subtitles: writes <out>.srt and <out>.txt",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            "示例:\n"
+            "Examples:\n"
             "  python content/kit/transcribe.py --dir content/sessions/2026-10-20-ep01\n"
             "  python content/kit/transcribe.py --input some.mp4 --out content/publish/ep01/take\n"
         ),
     )
     source = parser.add_mutually_exclusive_group()
     source.add_argument("--dir", default=None,
-                        help="会话目录：输入取 <dir>/raw.mkv，输出前缀默认 <dir>/take")
-    source.add_argument("--input", default=None, help="输入媒体文件（与 --dir 二选一）")
+                        help="session directory: reads <dir>/raw.mkv and defaults the output prefix to <dir>/take")
+    source.add_argument("--input", default=None, help="input media file (mutually exclusive with --dir)")
     parser.add_argument("--out", default=None,
-                        help="输出前缀（产出 <out>.srt / <out>.txt）；--dir 时默认 <dir>/take")
+                        help="output prefix (produces <out>.srt / <out>.txt); defaults to <dir>/take with --dir")
     parser.add_argument("--model", default=DEFAULT_MODEL,
-                        help="模型名（默认 %s；faster-whisper 用 small/medium/large-v3 等）" % DEFAULT_MODEL)
+                        help="model name (default %s; faster-whisper uses small/medium/large-v3, etc.)" % DEFAULT_MODEL)
     parser.add_argument("--language", default=DEFAULT_LANGUAGE,
-                        help="语言代码（默认 %s；传 auto 让引擎自己判断）" % DEFAULT_LANGUAGE)
-    parser.add_argument("--device", default="auto", help="faster-whisper: auto/cpu/cuda（默认 auto）")
+                        help="language code (default %s; pass auto to let the engine decide)" % DEFAULT_LANGUAGE)
+    parser.add_argument("--device", default="auto", help="faster-whisper: auto/cpu/cuda (default auto)")
     parser.add_argument("--compute-type", dest="compute_type", default="default",
-                        help="faster-whisper: default/float16/int8 等（默认 default）")
+                        help="faster-whisper: default/float16/int8, etc. (defaults to default)")
     parser.add_argument("--beam-size", dest="beam_size", type=positive_int, default=5,
-                        help="faster-whisper beam size（默认 5）")
+                        help="faster-whisper beam size (default 5)")
     parser.add_argument("--no-vad", dest="no_vad", action="store_true",
-                        help="关闭 faster-whisper 的 VAD 过滤（默认开启）")
+                        help="disable faster-whisper VAD filtering (enabled by default)")
     parser.add_argument("--model-dir", dest="model_dir", default=None,
-                        help="模型下载/缓存目录（缺省用引擎默认）")
+                        help="model download/cache directory (defaults to the engine's own)")
     parser.add_argument("--ffmpeg", default=None,
-                        help="ffmpeg 路径（openai-whisper 需要；缺省自动查找并注入 PATH）")
+                        help="ffmpeg path (needed by openai-whisper; located automatically and injected into PATH when omitted)")
     parser.add_argument("--overwrite", action="store_true",
-                        help="允许覆盖已存在的 <out>.srt / <out>.txt（默认报错）")
+                        help="allow overwriting an existing <out>.srt / <out>.txt (errors out by default)")
     parser.add_argument("--allow-empty", dest="allow_empty", action="store_true",
-                        help="没识别出任何语音时也写出空文件（默认报错退出）")
+                        help="write empty files even when no speech was recognized (errors out by default)")
     return parser
 
 
@@ -280,9 +280,9 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
 
     if not args.dir and not args.input:
-        die("必须指定 --dir 或 --input（看 --help）。", EXIT_USAGE)
+        die("You must pass --dir or --input (see --help).", EXIT_USAGE)
     if args.input and not args.out:
-        die("用 --input 时必须同时给出 --out（输出前缀）。", EXIT_USAGE)
+        die("--input also requires --out (the output prefix).", EXIT_USAGE)
 
     if args.dir:
         session_dir = os.path.abspath(args.dir)
@@ -302,30 +302,30 @@ def main(argv=None) -> int:
     out_prefix = os.path.abspath(out_prefix)
 
     if not os.path.isfile(media_path):
-        die("找不到输入媒体文件: %s" % media_path, EXIT_RUNTIME)
+        die("Input media file not found: %s" % media_path, EXIT_RUNTIME)
 
     srt_path = out_prefix + ".srt"
     txt_path = out_prefix + ".txt"
     if not args.overwrite:
         existing = [p for p in (srt_path, txt_path) if os.path.exists(p)]
         if existing:
-            die("输出已存在（默认不覆盖）: %s\n需要覆盖请加 --overwrite" % ", ".join(existing),
+            die("Output already exists (not overwritten by default): %s\nPass --overwrite to replace it" % ", ".join(existing),
                 EXIT_RUNTIME)
 
     engine, detail = detect_engine()
     if engine is None:
-        eprint("错误: %s" % INSTALL_HINT)
-        eprint("（当前导入失败原因: %s）" % detail)
-        eprint("（音频文件本身没问题: %s）" % media_path)
+        eprint("Error: %s" % INSTALL_HINT)
+        eprint("(current import failure: %s)" % detail)
+        eprint("(the audio file itself is fine: %s)" % media_path)
         sys.exit(EXIT_MISSING_ENGINE)
 
     ffmpeg_path = resolve_ffmpeg(args.ffmpeg)
     ensure_ffmpeg_on_path(ffmpeg_path)
     if engine == "whisper" and not ffmpeg_path:
-        eprint("警告: 没找到 ffmpeg，openai-whisper 可能无法解码音频；可用 --ffmpeg 指定。")
+        eprint("Warning: ffmpeg not found; openai-whisper may be unable to decode the audio. Pass --ffmpeg to point at it.")
 
-    eprint("引擎: %s | 模型: %s | 语言: %s" % (engine, args.model, args.language))
-    eprint("输入: %s" % media_path)
+    eprint("engine: %s | model: %s | language: %s" % (engine, args.model, args.language))
+    eprint("input: %s" % media_path)
 
     language = None if str(args.language).lower() in ("auto", "") else args.language
     args.language = language
@@ -335,18 +335,18 @@ def main(argv=None) -> int:
         else:
             segments = run_whisper(media_path, args)
     except Exception as exc:  # noqa: BLE001 - 转成可读原因，别甩堆栈
-        die("识别失败（%s）: %s" % (engine, exc), EXIT_RUNTIME)
+        die("Transcription failed (%s): %s" % (engine, exc), EXIT_RUNTIME)
 
     segments = [seg for seg in segments if seg[2]]
     if not segments:
         if not args.allow_empty:
-            die("没有识别出任何语音，未写出空字幕文件（如需空文件请加 --allow-empty）。"
-                "请检查音轨是否存在、音量是否过低。", EXIT_NO_SPEECH)
-        eprint("警告: 没有识别出任何语音，按 --allow-empty 写出空文件。")
+            die("No speech was recognized, so no empty subtitle files were written (add --allow-empty if you want them)."
+                " Check that the audio track exists and is not too quiet.", EXIT_NO_SPEECH)
+        eprint("Warning: no speech was recognized; writing empty files because --allow-empty was given.")
 
     srt_path, txt_path = write_outputs(out_prefix, segments)
-    print("已生成字幕")
-    print("  %s（%d 条）" % (srt_path, len(segments)))
+    print("Subtitles written")
+    print("  %s (%d segments)" % (srt_path, len(segments)))
     print("  %s" % txt_path)
     return 0
 
@@ -356,5 +356,5 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except KeyboardInterrupt:
-        eprint("已中断。")
+        eprint("Interrupted.")
         sys.exit(130)

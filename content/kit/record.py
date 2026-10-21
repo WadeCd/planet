@@ -5,7 +5,7 @@
 用法::
 
     python content/kit/record.py start --dir content/sessions/2026-10-20-ep01
-    python content/kit/record.py mark  --dir content/sessions/2026-10-20-ep01 --label "fail-第一次运行"
+    python content/kit/record.py mark  --dir content/sessions/2026-10-20-ep01 --label "fail-first-run"
     python content/kit/record.py stop  --dir content/sessions/2026-10-20-ep01
 
 设计要点：
@@ -79,12 +79,12 @@ def _force_utf8_stdio() -> None:
 
 def die(message: str, code: int = EXIT_RUNTIME) -> "NoReturn":  # type: ignore[name-defined]
     """打印可读原因并以非 0 退出。"""
-    eprint("错误: %s" % message)
+    eprint("Error: %s" % message)
     sys.exit(code)
 
 
 def warn(message: str) -> None:
-    eprint("警告: %s" % message)
+    eprint("Warning: %s" % message)
 
 
 # ---------------------------------------------------------------- 时间 / JSON
@@ -103,7 +103,7 @@ def parse_iso(text: str) -> datetime.datetime:
     try:
         dt = datetime.datetime.fromisoformat(text)
     except ValueError:
-        raise ValueError("时间戳不是合法 ISO 8601: %r" % (text,))
+        raise ValueError("not a valid ISO 8601 timestamp: %r" % (text,))
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=now_local().tzinfo)
     return dt
@@ -120,16 +120,16 @@ def write_json(path: str, data: dict) -> None:
 
 def read_json(path: str) -> dict:
     if not os.path.isfile(path):
-        die("找不到 %s（该会话还没 start 过？）" % path, EXIT_STATE)
+        die("Cannot find %s (was this session ever started?)" % path, EXIT_STATE)
     try:
         with open(path, "r", encoding="utf-8") as fh:
             data = json.load(fh)
     except json.JSONDecodeError as exc:
-        die("%s 不是合法 JSON: %s" % (path, exc), EXIT_STATE)
+        die("%s is not valid JSON: %s" % (path, exc), EXIT_STATE)
     except OSError as exc:
-        die("读取 %s 失败: %s" % (path, exc), EXIT_RUNTIME)
+        die("Failed to read %s: %s" % (path, exc), EXIT_RUNTIME)
     if not isinstance(data, dict):
-        die("%s 顶层必须是 object" % path, EXIT_STATE)
+        die("%s must be a top-level object" % path, EXIT_STATE)
     return data
 
 
@@ -138,42 +138,42 @@ def validate_markers(data: dict, path: str) -> dict:
     where = "markers.json(%s)" % path
     for key in ("session", "started_at", "stopped_at", "video", "markers"):
         if key not in data:
-            die("%s 缺少字段 %r" % (where, key), EXIT_STATE)
+            die("%s is missing field %r" % (where, key), EXIT_STATE)
     if not isinstance(data["session"], str):
-        die("%s 的 session 必须是 string" % where, EXIT_STATE)
+        die("%s: \"session\" must be a string" % where, EXIT_STATE)
     if not isinstance(data["started_at"], str):
-        die("%s 的 started_at 必须是 string" % where, EXIT_STATE)
+        die("%s: \"started_at\" must be a string" % where, EXIT_STATE)
     if data["stopped_at"] is not None and not isinstance(data["stopped_at"], str):
-        die("%s 的 stopped_at 必须是 string 或 null" % where, EXIT_STATE)
+        die("%s: \"stopped_at\" must be a string or null" % where, EXIT_STATE)
     if not isinstance(data["video"], str):
-        die("%s 的 video 必须是 string" % where, EXIT_STATE)
+        die("%s: \"video\" must be a string" % where, EXIT_STATE)
     if data["video"] != VIDEO_NAME:
-        die("%s 的 video 必须是 %r（契约硬约束）" % (where, VIDEO_NAME), EXIT_STATE)
+        die("%s: \"video\" must be %r (contract requirement)" % (where, VIDEO_NAME), EXIT_STATE)
     if not isinstance(data["markers"], list):
-        die("%s 的 markers 必须是 array" % where, EXIT_STATE)
+        die("%s: \"markers\" must be an array" % where, EXIT_STATE)
     try:
         parse_iso(data["started_at"])
         if data["stopped_at"] is not None:
             parse_iso(data["stopped_at"])
     except ValueError as exc:
-        die("%s 时间格式错误: %s" % (where, exc), EXIT_STATE)
+        die("%s has an invalid timestamp: %s" % (where, exc), EXIT_STATE)
     for idx, marker in enumerate(data["markers"]):
-        item = "%s 的 markers[%d]" % (where, idx)
+        item = "%s, markers[%d]" % (where, idx)
         if not isinstance(marker, dict):
-            die("%s 必须是 object" % item, EXIT_STATE)
+            die("%s must be an object" % item, EXIT_STATE)
         for key in ("label", "t", "at"):
             if key not in marker:
-                die("%s 缺少字段 %r" % (item, key), EXIT_STATE)
+                die("%s is missing field %r" % (item, key), EXIT_STATE)
         if not isinstance(marker["label"], str):
-            die("%s 的 label 必须是 string" % item, EXIT_STATE)
+            die("%s: \"label\" must be a string" % item, EXIT_STATE)
         if isinstance(marker["t"], bool) or not isinstance(marker["t"], (int, float)):
-            die("%s 的 t 必须是 number" % item, EXIT_STATE)
+            die("%s: \"t\" must be a number" % item, EXIT_STATE)
         if not isinstance(marker["at"], str):
-            die("%s 的 at 必须是 string" % item, EXIT_STATE)
+            die("%s: \"at\" must be a string" % item, EXIT_STATE)
         try:
             parse_iso(marker["at"])
         except ValueError as exc:
-            die("%s 时间格式错误: %s" % (item, exc), EXIT_STATE)
+            die("%s has an invalid timestamp: %s" % (item, exc), EXIT_STATE)
     return data
 
 
@@ -260,7 +260,7 @@ def _send_ctrl_break(pid: int) -> bool:
         os.kill(pid, signal.CTRL_BREAK_EVENT)  # type: ignore[attr-defined]
         return True
     except Exception as exc:  # noqa: BLE001 - 跨控制台时必然失败，属预期
-        eprint("提示: 发送 Ctrl-Break 失败（%s）；跨控制台/跨进程组时属预期，将改用 terminate。"
+        eprint("Note: could not send Ctrl-Break (%s); expected across consoles or process groups, falling back to terminate."
                % type(exc).__name__)
         return False
 
@@ -270,11 +270,11 @@ def read_pid(pid_path: str):
         with open(pid_path, "r", encoding="utf-8") as fh:
             raw = fh.read().strip()
     except OSError as exc:
-        die("读取 %s 失败: %s" % (pid_path, exc), EXIT_RUNTIME)
+        die("Failed to read %s: %s" % (pid_path, exc), EXIT_RUNTIME)
     try:
         return int(raw)
     except ValueError:
-        die("%s 内容不是 PID: %r（可手动删除后重新 start）" % (pid_path, raw), EXIT_STATE)
+        die("%s does not contain a PID: %r (delete it manually, then run start again)" % (pid_path, raw), EXIT_STATE)
 
 
 # ---------------------------------------------------------------- ffmpeg
@@ -303,8 +303,8 @@ def resolve_ffmpeg(explicit=None) -> str:
             if hit:
                 return os.path.abspath(hit)
     die(
-        "找不到 ffmpeg。请用 --ffmpeg 指定，或设置环境变量 FFMPEG，"
-        "或把它加入 PATH。已尝试: %s" % ", ".join(candidates),
+        "Could not find ffmpeg. Pass --ffmpeg, set the FFMPEG environment variable, "
+        "or add it to PATH. Tried: %s" % ", ".join(candidates),
         EXIT_RUNTIME,
     )
 
@@ -335,7 +335,7 @@ def resolve_ffprobe(ffmpeg_path: str, explicit=None):
 def probe_duration(ffprobe_path, video_path: str):
     """用 ffprobe 读容器时长（秒）；失败返回 (None, 原因)。"""
     if not ffprobe_path:
-        return None, "找不到 ffprobe"
+        return None, "ffprobe not found"
     try:
         result = subprocess.run(
             [ffprobe_path, "-v", "error", "-show_entries", "format=duration",
@@ -343,16 +343,16 @@ def probe_duration(ffprobe_path, video_path: str):
             capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60,
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
-        return None, "ffprobe 执行失败: %s" % exc
+        return None, "ffprobe failed to run: %s" % exc
     if result.returncode != 0:
-        return None, (result.stderr or "").strip()[:300] or ("ffprobe 退出码 %d" % result.returncode)
+        return None, (result.stderr or "").strip()[:300] or ("ffprobe exited with code %d" % result.returncode)
     text = (result.stdout or "").strip()
     if not text or text.upper() == "N/A":
-        return None, "ffprobe 没给出时长（文件可能不完整/损坏）"
+        return None, "ffprobe reported no duration (the file may be incomplete or corrupt)"
     try:
         return float(text), None
     except ValueError:
-        return None, "ffprobe 输出无法解析: %r" % text
+        return None, "could not parse ffprobe output: %r" % text
 
 
 def detect_audio_device(ffmpeg_path: str):
@@ -410,7 +410,7 @@ def tail_log(log_path: str, lines: int = 12) -> str:
 
 def cmd_start(args) -> int:
     if os.name != "nt":
-        die("record.py 的抓屏使用 ffmpeg gdigrab，目前仅支持 Windows。", EXIT_RUNTIME)
+        die("record.py captures the screen with ffmpeg gdigrab, which is Windows-only.", EXIT_RUNTIME)
 
     session_dir = os.path.abspath(args.dir)
     raw_path = os.path.join(session_dir, VIDEO_NAME)
@@ -425,21 +425,21 @@ def cmd_start(args) -> int:
         old_pid = read_pid(pid_path)
         if _pid_alive(old_pid):
             die(
-                "该会话已在录制中（pid=%d）。要结束请先执行: "
+                "This session is already recording (pid=%d). To finish it, run: "
                 "python content/kit/record.py stop --dir %s" % (old_pid, args.dir),
                 EXIT_STATE,
             )
-        warn("发现过期的 %s（pid=%d 已不存在），清理后继续。" % (PID_FILE, old_pid))
+        warn("Found a stale %s (pid=%d no longer exists); cleaning it up and continuing." % (PID_FILE, old_pid))
         try:
             os.remove(pid_path)
         except OSError as exc:
-            die("无法清理过期的 %s: %s" % (PID_FILE, exc), EXIT_RUNTIME)
+            die("Could not clean up the stale %s: %s" % (PID_FILE, exc), EXIT_RUNTIME)
 
     # 铁律：绝不覆盖 raw.mkv
     if os.path.exists(raw_path):
         die(
-            "%s 已存在。绝不覆盖 sessions 下的 raw.mkv；"
-            "请换会话目录，或先由你自己确认并移走旧录像。" % raw_path,
+            "%s already exists. raw.mkv under sessions is never overwritten; "
+            "use another session directory, or move the old recording away yourself after checking it." % raw_path,
             EXIT_STATE,
         )
 
@@ -456,8 +456,8 @@ def cmd_start(args) -> int:
         audio_device = detect_audio_device(ffmpeg_path)
         if not audio_device:
             die(
-                "--audio 已开启但没检测到音频输入设备。请用 --audio-device 指定设备名，"
-                "或去掉 --audio（无音频设备时默认可正常录制）。",
+                "--audio was requested but no audio input device was detected. Pass --audio-device with a device name, "
+                "or drop --audio (recording works fine without one).",
                 EXIT_RUNTIME,
             )
 
@@ -466,7 +466,7 @@ def cmd_start(args) -> int:
         with open(log_path, "w", encoding="utf-8"):
             pass
     except OSError as exc:
-        die("无法写入日志文件 %s: %s" % (log_path, exc), EXIT_RUNTIME)
+        die("Could not write the log file %s: %s" % (log_path, exc), EXIT_RUNTIME)
 
     started_at = now_local()   # 开录时刻：就在拉起 ffmpeg 之前
 
@@ -490,7 +490,7 @@ def cmd_start(args) -> int:
                 creationflags=creationflags, close_fds=True, cwd=session_dir,
             )
     except OSError as exc:
-        die("无法启动录制守护进程: %s" % exc, EXIT_RUNTIME)
+        die("Could not start the recording supervisor: %s" % exc, EXIT_RUNTIME)
 
     # 等守护进程把 ffmpeg 拉起来并写回 PID
     deadline = time.monotonic() + max(10.0, args.timeout)
@@ -513,14 +513,14 @@ def cmd_start(args) -> int:
         if os.path.exists(pid_path):           # 守护进程可能已写回 PID 但进程已死
             _terminate_if_alive(read_pid(pid_path))
             _cleanup_files(pid_path)
-        die("ffmpeg 未能在超时内启动。ffmpeg 日志:\n%s" % (detail or "(空)"), EXIT_RUNTIME)
+        die("ffmpeg did not start before the timeout. ffmpeg log:\n%s" % (detail or "(empty)"), EXIT_RUNTIME)
 
     # 再确认一下不是“写回 PID 之后就立刻挂掉”
     time.sleep(0.6)
     if not _pid_alive(ffmpeg_pid):
         detail = tail_log(log_path)
         _cleanup_files(pid_path, stop_path)
-        die("ffmpeg 启动后立刻退出（pid=%d）。日志:\n%s" % (ffmpeg_pid, detail or "(空)"), EXIT_RUNTIME)
+        die("ffmpeg exited right after starting (pid=%d). Log:\n%s" % (ffmpeg_pid, detail or "(empty)"), EXIT_RUNTIME)
 
     # 确认存活后再写 markers.json（避免留下 stopped_at=null 的假录制状态）
     markers = {
@@ -532,14 +532,14 @@ def cmd_start(args) -> int:
     }
     write_json(os.path.join(session_dir, "markers.json"), markers)
 
-    print("已开始录制")
-    print("  会话目录 : %s" % session_dir)
-    print("  raw.mkv  : %s" % raw_path)
-    print("  markers  : %s" % os.path.join(session_dir, "markers.json"))
-    print("  ffmpeg   : pid=%d  %s" % (ffmpeg_pid, ffmpeg_path))
+    print("Recording started")
+    print("  session   : %s" % session_dir)
+    print("  raw.mkv   : %s" % raw_path)
+    print("  markers   : %s" % os.path.join(session_dir, "markers.json"))
+    print("  ffmpeg    : pid=%d  %s" % (ffmpeg_pid, ffmpeg_path))
     print("  started_at: %s" % markers["started_at"])
     if args.audio:
-        print("  音频     : %s" % audio_device)
+        print("  audio     : %s" % audio_device)
     return 0
 
 
@@ -568,11 +568,11 @@ def cmd_mark(args) -> int:
     mark_at = now_local()
     seconds = (mark_at - started_at).total_seconds()
     if seconds < 0:
-        warn("当前时间早于 started_at（系统时钟回拨？），t 记为 0.0。")
+        warn("current time is earlier than started_at (system clock moved back?); recording t as 0.0.")
         seconds = 0.0
 
     if data["stopped_at"] is not None:
-        eprint("提示: 该会话已在 %s 停录；仍按 started_at 记录这条打点。" % data["stopped_at"])
+        eprint("Note: this session already stopped at %s; the marker is still recorded relative to started_at." % data["stopped_at"])
 
     marker = {
         "label": args.label,
@@ -583,7 +583,7 @@ def cmd_mark(args) -> int:
     data["markers"].sort(key=lambda item: item["t"])   # 契约：markers 按 t 升序
     write_json(markers_path, data)
 
-    print("已打点: label=%s t=%.3f at=%s（共 %d 条）"
+    print("Marker added: label=%s t=%.3f at=%s (%d total)"
           % (marker["label"], marker["t"], marker["at"], len(data["markers"])))
     return 0
 
@@ -600,7 +600,7 @@ def cmd_stop(args) -> int:
 
     if not os.path.exists(pid_path):
         die(
-            "未在录制中：%s 不存在。若确实在录，请检查是否指定了正确的 --dir。" % pid_path,
+            "Not recording: %s does not exist. If you are recording, check that --dir points to the right session." % pid_path,
             EXIT_STATE,
         )
 
@@ -609,10 +609,10 @@ def cmd_stop(args) -> int:
 
     if not _pid_alive(ffmpeg_pid):
         graceful = False
-        warn("录制进程 pid=%d 已不存在（可能异常退出或已被结束）。" % ffmpeg_pid)
+        warn("the recording process pid=%d no longer exists (it may have crashed or been killed)." % ffmpeg_pid)
     elif not _looks_like_ffmpeg(ffmpeg_pid):
         graceful = False
-        warn("pid=%d 不是 ffmpeg（%s），拒绝结束别的进程；只回填 stopped_at。"
+        warn("pid=%d is not ffmpeg (%s); refusing to kill another process, only backfilling stopped_at."
              % (ffmpeg_pid, _pid_exe(ffmpeg_pid)))
     else:
         # 1) 通知守护进程向 ffmpeg stdin 写 'q'（能触发 mkv 正常收尾）
@@ -620,7 +620,7 @@ def cmd_stop(args) -> int:
             with open(stop_path, "w", encoding="utf-8") as fh:
                 fh.write(iso(now_local()))
         except OSError as exc:
-            die("无法写入 %s: %s" % (stop_path, exc), EXIT_RUNTIME)
+            die("Could not write %s: %s" % (stop_path, exc), EXIT_RUNTIME)
 
         wait_deadline = time.monotonic() + args.timeout
         while time.monotonic() < wait_deadline:
@@ -630,19 +630,19 @@ def cmd_stop(args) -> int:
 
         # 2) 超时：尽力 Ctrl-Break，再 terminate / kill
         if _pid_alive(ffmpeg_pid):
-            warn("ffmpeg 未在 %.0f 秒内响应收尾请求，尝试 Ctrl-Break。" % args.timeout)
+            warn("ffmpeg did not respond to the stop request within %.0f s; trying Ctrl-Break." % args.timeout)
             _send_ctrl_break(ffmpeg_pid)
             ctrl_deadline = time.monotonic() + 3.0
             while time.monotonic() < ctrl_deadline and _pid_alive(ffmpeg_pid):
                 time.sleep(0.2)
         if _pid_alive(ffmpeg_pid):
-            warn("仍在运行，强制结束 ffmpeg（此时 mkv 可能缺少完整索引）。")
+            warn("still running; force-terminating ffmpeg (the mkv may end up without a complete index).")
             _terminate(ffmpeg_pid)
             term_deadline = time.monotonic() + 5.0
             while time.monotonic() < term_deadline and _pid_alive(ffmpeg_pid):
                 time.sleep(0.2)
         if _pid_alive(ffmpeg_pid):
-            warn("terminate 无效，kill。")
+            warn("terminate had no effect; killing the process.")
             _kill(ffmpeg_pid)
             time.sleep(0.5)
         graceful = not _pid_alive(ffmpeg_pid)
@@ -651,7 +651,7 @@ def cmd_stop(args) -> int:
     stopped_at = now_local()
     if not os.path.isfile(markers_path):
         _cleanup_files(pid_path, stop_path)
-        die("找不到 %s，无法回填 stopped_at（已清理 %s）。" % (markers_path, PID_FILE), EXIT_STATE)
+        die("Cannot find %s, so stopped_at cannot be backfilled (cleaned up %s)." % (markers_path, PID_FILE), EXIT_STATE)
 
     data = validate_markers(read_json(markers_path), markers_path)
     data["stopped_at"] = iso(stopped_at)
@@ -664,38 +664,38 @@ def cmd_stop(args) -> int:
     if os.path.exists(raw_path):
         ffprobe_path = resolve_ffprobe(resolve_ffmpeg(args.ffmpeg) if args.ffmpeg else _ffmpeg_hint(), args.ffprobe)
         if not ffprobe_path:
-            duration, probe_error = None, "找不到 ffprobe"
-            eprint("提示: 系统里没有 ffprobe，跳过 raw.mkv 时长自检。")
+            duration, probe_error = None, "ffprobe not found"
+            eprint("Note: no ffprobe on this system; skipping the raw.mkv duration check.")
         else:
             duration, probe_error = probe_duration(ffprobe_path, raw_path)
             if duration is None or duration <= 0:
                 video_ok = False
     else:
-        duration, probe_error = None, "raw.mkv 不存在"
+        duration, probe_error = None, "raw.mkv does not exist"
         video_ok = False
 
-    print("已停止录制")
-    print("  会话目录  : %s" % session_dir)
+    print("Recording stopped")
+    print("  session   : %s" % session_dir)
     print("  stopped_at: %s" % data["stopped_at"])
-    print("  markers   : %d 条" % len(data["markers"]))
+    print("  markers   : %d" % len(data["markers"]))
     if duration is not None:
-        print("  raw.mkv   : 时长 %.3f 秒" % duration)
+        print("  raw.mkv   : duration %.3f s" % duration)
 
     if not video_ok:
-        warn("raw.mkv 不可用: %s" % probe_error)
+        warn("raw.mkv is unusable: %s" % probe_error)
         if args.verbose:
             detail = tail_log(log_path)
             if detail:
-                eprint("---- ffmpeg 日志尾部 ----")
+                eprint("---- end of ffmpeg log ----")
                 eprint(detail)
         return EXIT_RUNTIME
 
     if graceful is False:
-        warn("ffmpeg 不是通过收尾请求结束的，录像可能缺少完整索引；建议复核 raw.mkv。")
+        warn("ffmpeg did not exit via the stop request; the recording may lack a complete index, so double-check raw.mkv.")
     if args.verbose:
         detail = tail_log(log_path)
         if detail:
-            eprint("---- ffmpeg 日志尾部 ----")
+            eprint("---- end of ffmpeg log ----")
             eprint(detail)
     return 0
 
@@ -746,13 +746,13 @@ def cmd_supervise(args) -> int:
         )
     except OSError as exc:
         if log_fh:
-            log_fh.write("[supervisor] 启动 ffmpeg 失败: %s\n" % exc)
+            log_fh.write("[supervisor] failed to start ffmpeg: %s\n" % exc)
             log_fh.close()
         return EXIT_RUNTIME
 
     write_json_pid(pid_path, proc.pid)
     if log_fh:
-        log_fh.write("[supervisor] ffmpeg pid=%d 启动\n" % proc.pid)
+        log_fh.write("[supervisor] ffmpeg started, pid=%d\n" % proc.pid)
         log_fh.flush()
 
     deadline = None
@@ -766,13 +766,13 @@ def cmd_supervise(args) -> int:
                         proc.stdin.write(b"q")
                         proc.stdin.flush()
                     if log_fh:
-                        log_fh.write("[supervisor] 已向 ffmpeg stdin 写入 'q'，等待收尾\n")
+                        log_fh.write("[supervisor] wrote 'q' to ffmpeg stdin; waiting for it to finish\n")
                         log_fh.flush()
                     # 收尾请求已发出，交给下面统一超时处理
                     deadline = time.monotonic() + max(1.0, args.timeout)
                 except OSError as exc:
                     if log_fh:
-                        log_fh.write("[supervisor] 写 stdin 失败: %s\n" % exc)
+                        log_fh.write("[supervisor] failed to write stdin: %s\n" % exc)
                         log_fh.flush()
                     deadline = time.monotonic()  # 立刻走强杀分支
                 try:
@@ -781,7 +781,7 @@ def cmd_supervise(args) -> int:
                     pass
             if deadline is not None and time.monotonic() > deadline:
                 if log_fh:
-                    log_fh.write("[supervisor] 收尾超时，terminate\n")
+                    log_fh.write("[supervisor] stop timed out; terminating\n")
                     log_fh.flush()
                 if proc.poll() is None:
                     proc.terminate()
@@ -789,14 +789,14 @@ def cmd_supervise(args) -> int:
                         proc.wait(timeout=5)
                     except subprocess.TimeoutExpired:
                         if log_fh:
-                            log_fh.write("[supervisor] terminate 无效，kill\n")
+                            log_fh.write("[supervisor] terminate had no effect; killing\n")
                             log_fh.flush()
                         proc.kill()
                 break
             time.sleep(0.2)
     except Exception as exc:  # noqa: BLE001 - 守护进程不能把异常留给用户
         if log_fh:
-            log_fh.write("[supervisor] 异常: %r\n" % (exc,))
+            log_fh.write("[supervisor] exception: %r\n" % (exc,))
             log_fh.flush()
     finally:
         try:
@@ -812,7 +812,7 @@ def cmd_supervise(args) -> int:
                 proc.kill()
                 rc = proc.poll()
         if log_fh:
-            log_fh.write("[supervisor] ffmpeg 退出 rc=%s\n" % rc)
+            log_fh.write("[supervisor] ffmpeg exited rc=%s\n" % rc)
             log_fh.flush()
             log_fh.close()
     return 0
@@ -831,53 +831,53 @@ def positive_float(text: str) -> float:
     try:
         value = float(text)
     except ValueError:
-        raise argparse.ArgumentTypeError("必须是数字: %r" % text)
+        raise argparse.ArgumentTypeError("must be a number: %r" % text)
     if value <= 0:
-        raise argparse.ArgumentTypeError("必须大于 0: %r" % text)
+        raise argparse.ArgumentTypeError("must be greater than 0: %r" % text)
     return value
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="record.py",
-        description="录制与打点：ffmpeg gdigrab 抓屏 -> <dir>/raw.mkv，打点写入 <dir>/markers.json",
+        description="Record and mark: capture the screen with ffmpeg gdigrab into <dir>/raw.mkv; markers go to <dir>/markers.json",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            "示例:\n"
+            "Examples:\n"
             "  python content/kit/record.py start --dir content/sessions/2026-10-20-ep01\n"
-            "  python content/kit/record.py mark  --dir content/sessions/2026-10-20-ep01 --label \"fail-第一次运行\"\n"
+            "  python content/kit/record.py mark  --dir content/sessions/2026-10-20-ep01 --label \"fail-first-run\"\n"
             "  python content/kit/record.py stop  --dir content/sessions/2026-10-20-ep01\n"
         ),
     )
     sub = parser.add_subparsers(dest="command", metavar="{start,mark,stop}")
 
-    p_start = sub.add_parser("start", help="开始录制（建目录、起 ffmpeg、写 markers.json、存 .recording.pid）")
-    p_start.add_argument("--dir", required=True, help="会话目录，例 content/sessions/2026-10-20-ep01")
-    p_start.add_argument("--fps", type=positive_float, default=DEFAULT_FPS, help="抓屏帧率（默认 %g）" % DEFAULT_FPS)
-    p_start.add_argument("--audio", action="store_true", help="同时录制音频（默认关；无音频设备时也能正常录制）")
-    p_start.add_argument("--audio-device", default=None, help="dshow 音频设备名，缺省时自动探测")
-    p_start.add_argument("--ffmpeg", default=None, help="ffmpeg 可执行文件路径（缺省: 环境变量 FFMPEG / PATH / 常见位置）")
+    p_start = sub.add_parser("start", help="Start recording: create the directory, launch ffmpeg, write markers.json, save .recording.pid")
+    p_start.add_argument("--dir", required=True, help="session directory, e.g. content/sessions/2026-10-20-ep01")
+    p_start.add_argument("--fps", type=positive_float, default=DEFAULT_FPS, help="capture frame rate (default %g)" % DEFAULT_FPS)
+    p_start.add_argument("--audio", action="store_true", help="also record audio (off by default; recording works without an audio device)")
+    p_start.add_argument("--audio-device", default=None, help="dshow audio device name; auto-detected when omitted")
+    p_start.add_argument("--ffmpeg", default=None, help="path to the ffmpeg executable (default: FFMPEG env var / PATH / common locations)")
     p_start.add_argument("--timeout", type=positive_float, default=DEFAULT_STOP_TIMEOUT,
-                         help="优雅收尾等待秒数，超时才强杀（默认 %g）" % DEFAULT_STOP_TIMEOUT)
-    p_start.add_argument("--log", default=None, help="ffmpeg 日志路径（默认 <dir>/.ffmpeg.log）")
+                         help="seconds to wait for a graceful stop before force-killing (default %g)" % DEFAULT_STOP_TIMEOUT)
+    p_start.add_argument("--log", default=None, help="ffmpeg log path (default <dir>/.ffmpeg.log)")
     p_start.set_defaults(func=cmd_start)
 
-    p_mark = sub.add_parser("mark", help="按 now - started_at 追加一条 marker（可独立进程调用）")
-    p_mark.add_argument("--dir", required=True, help="会话目录")
-    p_mark.add_argument("--label", required=True, help="标签，原样照抄设计文档（可含中文）")
+    p_mark = sub.add_parser("mark", help="Append one marker at now - started_at (can run as a separate process)")
+    p_mark.add_argument("--dir", required=True, help="session directory")
+    p_mark.add_argument("--label", required=True, help="label, copied verbatim from the design doc")
     p_mark.set_defaults(func=cmd_mark)
 
-    p_stop = sub.add_parser("stop", help="优雅结束 ffmpeg、回填 stopped_at、删除 .recording.pid")
-    p_stop.add_argument("--dir", required=True, help="会话目录")
+    p_stop = sub.add_parser("stop", help="Gracefully stop ffmpeg, backfill stopped_at, remove .recording.pid")
+    p_stop.add_argument("--dir", required=True, help="session directory")
     p_stop.add_argument("--timeout", type=positive_float, default=DEFAULT_STOP_TIMEOUT,
-                        help="等待优雅收尾的秒数（默认 %g）" % DEFAULT_STOP_TIMEOUT)
-    p_stop.add_argument("--ffmpeg", default=None, help="ffmpeg 路径（仅用于找 ffprobe 做自检）")
-    p_stop.add_argument("--ffprobe", default=None, help="ffprobe 路径（仅用于自检 raw.mkv 时长）")
-    p_stop.add_argument("--verbose", action="store_true", help="额外打印 ffmpeg 日志尾部")
+                        help="seconds to wait for the graceful stop (default %g)" % DEFAULT_STOP_TIMEOUT)
+    p_stop.add_argument("--ffmpeg", default=None, help="ffmpeg path (only used to locate ffprobe for the sanity check)")
+    p_stop.add_argument("--ffprobe", default=None, help="ffprobe path (only used to check the raw.mkv duration)")
+    p_stop.add_argument("--verbose", action="store_true", help="also print the tail of the ffmpeg log")
     p_stop.set_defaults(func=cmd_stop)
 
     # 内部子命令：由 start 拉起，持有 ffmpeg stdin
-    p_sup = sub.add_parser("_supervise", help="(内部) 录制守护进程，由 start 自动拉起，勿手动调用")
+    p_sup = sub.add_parser("_supervise", help="(internal) recording supervisor, launched by start; do not call manually")
     p_sup.add_argument("--dir", required=True)
     p_sup.add_argument("--ffmpeg", required=True)
     p_sup.add_argument("--fps", type=positive_float, default=DEFAULT_FPS)
@@ -904,5 +904,5 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except KeyboardInterrupt:
-        eprint("已中断。")
+        eprint("Interrupted.")
         sys.exit(130)

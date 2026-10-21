@@ -35,14 +35,14 @@ def _force_utf8_stdio() -> None:
 
 def _load_script(path: str) -> str:
     if not os.path.isfile(path):
-        sys.exit(f"找不到旁白稿: {path}")
+        sys.exit(f"narration script not found: {path}")
     with open(path, encoding="utf-8") as f:
         lines = [ln.strip() for ln in f]
     if lines and lines[0].lstrip().startswith("\ufeff"):
         lines[0] = lines[0].lstrip("\ufeff")
     text = " ".join(ln for ln in lines if ln)
     if not text:
-        sys.exit(f"旁白稿是空的: {path}")
+        sys.exit(f"narration script is empty: {path}")
     return text
 
 
@@ -81,11 +81,11 @@ def _render_via_module(edge_tts, text: str, voice: str, rate: str, mp3: str, srt
                         fed += 1
                     except ValueError as exc:
                         # 同一路语音里边界类型理应一致；混合时保留已收事件，不让音频白跑
-                        print(f"警告: 跳过一条边界事件({exc})", file=sys.stderr)
+                        print(f"WARNING: skipped a boundary event ({exc})", file=sys.stderr)
         with open(srt, "w", encoding="utf-8", newline="\n") as sub_file:
             sub_file.write(submaker.get_srt())
         if fed == 0:
-            print("警告: 引擎没有返回任何边界事件，字幕文件是空的。", file=sys.stderr)
+            print("WARNING: the engine returned no boundary events; the subtitle file is empty.", file=sys.stderr)
 
     asyncio.run(_run())
 
@@ -94,15 +94,15 @@ def _render_via_cli(text: str, voice: str, rate: str, mp3: str, srt: str) -> Non
     exe = shutil.which("edge-tts")
     if exe is None:
         sys.exit(
-            "缺少依赖: 找不到 edge-tts(既没有 Python 模块,也不在 PATH 上)。\n"
-            "请先安装:  pip install -r content/kit/requirements.txt"
+            "missing dependency: edge-tts not found (neither as a Python module nor on PATH).\n"
+            "install it first:  pip install -r content/kit/requirements.txt"
         )
     cmd = [exe, "--voice", voice, "--rate", rate,
            "--text", text, "--write-media", mp3, "--write-subtitles", srt]
     try:
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as e:
-        sys.exit(f"edge-tts 执行失败(退出码 {e.returncode})。请检查网络连接后重试。")
+        sys.exit(f"edge-tts failed (exit code {e.returncode}). Check your network connection and retry.")
 
 
 def _list_voices(edge_tts) -> None:
@@ -117,23 +117,23 @@ def _list_voices(edge_tts) -> None:
     exe = shutil.which("edge-tts")
     if exe is None:
         sys.exit(
-            "缺少依赖: 找不到 edge-tts。\n"
-            "请先安装:  pip install -r content/kit/requirements.txt"
+            "missing dependency: edge-tts not found.\n"
+            "install it first:  pip install -r content/kit/requirements.txt"
         )
     subprocess.run([exe, "--list-voices"], check=True)
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(
-        description="旁白稿 -> mp3 + srt(Edge 神经网络语音)",
+        description="narration script -> mp3 + srt (Edge neural voice)",
     )
-    ap.add_argument("--script", help="旁白稿纯文本(一行一段,空行分段)")
-    ap.add_argument("--out", help="输出前缀(不带扩展名),产出 <out>.mp3 与 <out>.srt")
+    ap.add_argument("--script", help="narration script as plain text (one paragraph per line, blank line separates paragraphs)")
+    ap.add_argument("--out", help="output prefix (without extension); produces <out>.mp3 and <out>.srt")
     ap.add_argument("--voice", default=DEFAULT_VOICE,
-                    help=f"音色,默认 {DEFAULT_VOICE}")
-    ap.add_argument("--rate", default="+0%", help="语速,如 +5%% / -10%%")
+                    help=f"voice, default {DEFAULT_VOICE}")
+    ap.add_argument("--rate", default="+0%", help="speech rate, e.g. +5%% / -10%%")
     ap.add_argument("--list-voices", action="store_true",
-                    help="只列出全部可用音色后退出")
+                    help="list all available voices and exit")
     a = ap.parse_args()
 
     edge_tts = _try_import_edge_tts()
@@ -143,7 +143,7 @@ def main() -> None:
         return
 
     if not a.script or not a.out:
-        ap.error("需要 --script 和 --out(或使用 --list-voices)")
+        ap.error("--script and --out are required (or use --list-voices)")
 
     text = _load_script(a.script)
 
@@ -166,22 +166,22 @@ def main() -> None:
             last_error = exc
             if attempt < RENDER_ATTEMPTS:
                 print(
-                    f"警告: 第 {attempt}/{RENDER_ATTEMPTS} 次合成失败"
-                    f"（{type(exc).__name__}: {exc}），{attempt * 2}s 后重试…",
+                    f"WARNING: synthesis attempt {attempt}/{RENDER_ATTEMPTS} failed"
+                    f" ({type(exc).__name__}: {exc}); retrying in {attempt * 2}s...",
                     file=sys.stderr,
                 )
                 time.sleep(attempt * 2)
 
     if last_error is not None:
         sys.exit(
-            f"配音失败（已重试 {RENDER_ATTEMPTS} 次）: {type(last_error).__name__}: {last_error}\n"
-            "  常见原因: 网络不通/连接被拦（合成服务是 wss://speech.platform.bing.com）、"
-            "或临时限流。请检查网络后重试。"
+            f"voiceover failed (after {RENDER_ATTEMPTS} attempts): {type(last_error).__name__}: {last_error}\n"
+            "  common causes: no network access / blocked connection (the synthesis service is wss://speech.platform.bing.com), "
+            "or temporary rate limiting. Check your network and retry."
         )
 
     for path in (mp3, srt):
         if not os.path.isfile(path):
-            sys.exit(f"引擎已退出但没有产出文件: {path}")
+            sys.exit(f"the engine exited without producing a file: {path}")
 
     # 守卫：确认产出的确实是一份 SRT。
     # 曾经踩过：把 Communicate.save(audio, metadata) 的第二参数当成字幕，
@@ -189,15 +189,15 @@ def main() -> None:
     with open(srt, encoding="utf-8-sig") as f:
         head = f.read(8192)
     if not head.strip():
-        sys.exit(f"字幕文件是空的（引擎没返回边界事件）: {srt}")
+        sys.exit(f"subtitle file is empty (the engine returned no boundary events): {srt}")
     if "-->" not in head:
         sys.exit(
-            f"产出的字幕不是 SRT 格式（找不到 '-->' 时间轴）: {srt}\n"
-            "  首行: %s" % head.strip().splitlines()[0][:120]
+            f"the produced subtitle is not SRT (no '-->' timeline found): {srt}\n"
+            "  first line: %s" % head.strip().splitlines()[0][:120]
         )
 
-    print(f"配音完成: {mp3}")
-    print(f"字幕完成: {srt}(可直接给 roughcut.py 烧录)")
+    print(f"voiceover done: {mp3}")
+    print(f"subtitles done: {srt} (ready to burn in with roughcut.py)")
 
 
 if __name__ == "__main__":
@@ -205,5 +205,5 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("已中断。", file=sys.stderr)
+        print("Interrupted.", file=sys.stderr)
         sys.exit(130)

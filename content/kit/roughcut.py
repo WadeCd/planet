@@ -14,8 +14,8 @@
       "subtitles": "content/publish/ep01/voice.srt",
       "loudness_lufs": -14.0,
       "segments": [
-        {"name": "钩子", "from_marker": "beauty-黄昏绕圈", "to_marker": null, "speed": 1.0},
-        {"name": "干活", "from_marker": "dev-开始写引力", "to_marker": "fail-第一次运行", "speed": 6.0}
+        {"name": "钩子", "from_marker": "beauty-sunset-orbit", "to_marker": null, "speed": 1.0},
+        {"name": "干活", "from_marker": "dev-gravity-start", "to_marker": "fail-first-run", "speed": 6.0}
       ]
     }
 
@@ -60,17 +60,17 @@ FFPROBE_FALLBACKS = (
 )
 
 TOOL_HINT = (
-    "请安装 ffmpeg（含 ffprobe）并加入 PATH，或：\n"
-    "  · 设置环境变量 {env}=<可执行文件路径>\n"
-    "  · 或加命令行参数 {flag} <可执行文件路径>\n"
-    "  · 本机常见位置: E:\\ffmpeg\\bin\\ffmpeg.exe"
+    "Install ffmpeg (with ffprobe) and add it to PATH, or:\n"
+    "  · set the environment variable {env}=<path to executable>\n"
+    "  · or pass the command-line option {flag} <path to executable>\n"
+    "  · common location on this machine: E:\\ffmpeg\\bin\\ffmpeg.exe"
 )
 
 # ---------------------------------------------------------------- 输出辅助
 
 
 def warn(msg: str) -> None:
-    print("警告: " + str(msg), file=sys.stderr)
+    print("WARNING: " + str(msg), file=sys.stderr)
 
 
 def info(msg: str) -> None:
@@ -78,7 +78,7 @@ def info(msg: str) -> None:
 
 
 def die(msg: str, code: int = 1) -> "None":
-    print("错误: " + str(msg), file=sys.stderr)
+    print("ERROR: " + str(msg), file=sys.stderr)
     sys.exit(code)
 
 
@@ -116,7 +116,7 @@ def resolve_tool(tool: str, explicit: str | None, env_var: str, fallbacks) -> st
 
     flag = "--ffmpeg" if tool == "ffmpeg" else "--ffprobe"
     hint = TOOL_HINT.format(env=env_var, flag=flag)
-    die(f"未找到 {tool}。\n{hint}")
+    die(f"{tool} not found.\n{hint}")
 
 
 # ---------------------------------------------------------------- ffprobe
@@ -136,13 +136,13 @@ def ffprobe_info(ffprobe: str, path: Path) -> dict:
             cmd, capture_output=True, text=True, encoding="utf-8", errors="replace"
         )
     except OSError as exc:
-        die(f"无法执行 ffprobe: {exc}")
+        die(f"cannot run ffprobe: {exc}")
     if proc.returncode != 0:
-        die(f"ffprobe 无法读取 {path}\n{proc.stderr.strip()}")
+        die(f"ffprobe cannot read {path}\n{proc.stderr.strip()}")
     try:
         return json.loads(proc.stdout)
     except json.JSONDecodeError as exc:
-        die(f"ffprobe 输出无法解析（{path}）: {exc}")
+        die(f"cannot parse ffprobe output ({path}): {exc}")
 
 
 def first_stream(info: dict, kind: str) -> dict | None:
@@ -162,7 +162,7 @@ def media_duration(info: dict, path: Path) -> float:
     try:
         return float(raw)
     except (TypeError, ValueError):
-        die(f"无法确定录像时长（ffprobe 未给出 duration）: {path}")
+        die(f"cannot determine recording duration (ffprobe reported no duration): {path}")
 
 
 def frame_rate_arg(stream: dict | None, default: str = "30") -> str:
@@ -186,19 +186,19 @@ def frame_rate_arg(stream: dict | None, default: str = "30") -> str:
 
 def load_json(path: Path, what: str) -> dict:
     if not path.is_file():
-        die(f"{what} 不存在: {path}")
+        die(f"{what} not found: {path}")
     try:
         # utf-8-sig：剪辑单由人（Shanks）在 Windows 上产出，记事本/PowerShell 默认写 BOM。
         # 用 utf-8-sig 可同时读带 BOM 与不带 BOM 的 UTF-8，避免 "Unexpected UTF-8 BOM" 硬失败。
         text = path.read_text(encoding="utf-8-sig")
     except OSError as exc:
-        die(f"无法读取 {what}（{path}）: {exc}")
+        die(f"cannot read {what} ({path}): {exc}")
     try:
         data = json.loads(text)
     except json.JSONDecodeError as exc:
-        die(f"{what} 不是合法 JSON（{path}）: {exc}")
+        die(f"{what} is not valid JSON ({path}): {exc}")
     if not isinstance(data, dict):
-        die(f"{what} 顶层必须是 JSON 对象: {path}")
+        die(f"{what} must be a JSON object at the top level: {path}")
     return data
 
 
@@ -208,13 +208,13 @@ def resolve_input_path(raw: str, what: str) -> Path:
     if p.is_absolute():
         if p.is_file():
             return p
-        die(f"{what} 不存在: {p}")
+        die(f"{what} not found: {p}")
     cwd_candidate = (Path.cwd() / p).resolve()
     root_candidate = (REPO_ROOT / p).resolve()
     for cand in (cwd_candidate, root_candidate):
         if cand.is_file():
             return cand
-    die(f"{what} 不存在: {raw}\n  已尝试: {cwd_candidate}\n          {root_candidate}")
+    die(f"{what} not found: {raw}\n  tried: {cwd_candidate}\n         {root_candidate}")
 
 
 # ---------------------------------------------------------------- 定位辅助
@@ -223,17 +223,17 @@ def resolve_input_path(raw: str, what: str) -> Path:
 def normalize_markers(doc: dict, markers_path: Path) -> list[dict]:
     raw_markers = doc.get("markers")
     if not isinstance(raw_markers, list) or not raw_markers:
-        die(f"markers.json 中没有可用的 markers 数组: {markers_path}")
+        die(f"markers.json has no usable markers array: {markers_path}")
     markers: list[dict] = []
     for idx, item in enumerate(raw_markers):
         if not isinstance(item, dict):
-            die(f"markers.json 的 markers[{idx}] 不是对象: {markers_path}")
+            die(f"markers.json markers[{idx}] is not an object: {markers_path}")
         label = item.get("label")
         t = item.get("t")
         if not isinstance(label, str) or not label:
-            die(f"markers.json 的 markers[{idx}] 缺少非空 label: {markers_path}")
+            die(f"markers.json markers[{idx}] is missing a non-empty label: {markers_path}")
         if isinstance(t, bool) or not isinstance(t, (int, float)):
-            die(f"markers.json 的 markers[{idx}].t 必须是数字: {markers_path}")
+            die(f"markers.json markers[{idx}].t must be a number: {markers_path}")
         markers.append({"label": label, "t": float(t)})
     markers.sort(key=lambda m: m["t"])  # 契约保证按 t 升序；这里兜底排序
     return markers
@@ -251,15 +251,15 @@ def available_labels(markers: list[dict]) -> str:
     lines = []
     for marker in markers:
         lines.append(f"    - {marker['label']}  (t={marker['t']:g}s)")
-    return "\n".join(lines) if lines else "    （markers.json 中没有标签）"
+    return "\n".join(lines) if lines else "    (no labels in markers.json)"
 
 
 def label_or_die(markers: list[dict], label: str, where: str) -> dict:
     marker = find_marker(markers, label)
     if marker is None:
         die(
-            f"{where}: 找不到标签 {label!r}。\n"
-            f"  可用标签（markers.json 共 {len(markers)} 条）:\n{available_labels(markers)}"
+            f"{where}: label {label!r} not found.\n"
+            f"  Available labels ({len(markers)} total in markers.json):\n{available_labels(markers)}"
         )
     return marker
 
@@ -335,8 +335,8 @@ def subtitle_filter(subtitle_path: Path) -> tuple[str, Path | None]:
             shutil.copyfile(subtitle_path, tmp_file)
         except OSError as exc:
             shutil.rmtree(tmp_dir, ignore_errors=True)
-            die(f"字幕路径含单引号且复制临时副本失败（{subtitle_path}）: {exc}")
-        warn(f"字幕路径含单引号，已复制临时副本用于烧录: {tmp_file}")
+            die(f"subtitle path contains a single quote and copying a temporary copy failed ({subtitle_path}): {exc}")
+        warn(f"subtitle path contains a single quote; copied a temporary copy for burn-in: {tmp_file}")
         return f"subtitles=filename={escape_filter_value(str(tmp_file))}", tmp_file
     return f"subtitles=filename={escape_filter_value(text)}", None
 
@@ -355,30 +355,30 @@ def _cleanup_temp_file(path: Path) -> None:
 def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="roughcut.py",
-        description="按剪辑单（content/edits/epNN.json）对会话录像做粗剪，输出一段拼接成片。",
+        description="Rough-cut session recordings according to an edit list (content/edits/epNN.json) into one stitched output.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            "示例:\n"
+            "Example:\n"
             "  python content/kit/roughcut.py --edit content/edits/ep01.json --out content/publish/ep01/long.mp4\n"
             "\n"
-            "约定:\n"
-            "  · session 相对 content/sessions/ 解析；录像文件名取 markers.json 的 video 字段（恒为 raw.mkv）\n"
-            "  · from_marker/to_marker 用标签定位；to_marker=null 表示直到录像结尾\n"
-            "  · 同一标签重复出现时取第一个匹配；标签不存在则报错并列出可用标签\n"
-            "  · 缺少 markers.json 时直接报错，绝不猜测时间点\n"
-            "  · publish/ 已有同名产物时默认报错，需显式 --overwrite\n"
+            "Conventions:\n"
+            "  · session is resolved relative to content/sessions/; the recording filename comes from the video field in markers.json (always raw.mkv)\n"
+            "  · from_marker/to_marker locate segments by label; to_marker=null means up to the end of the recording\n"
+            "  · a repeated label matches the first occurrence; a missing label errors out and lists the available labels\n"
+            "  · a missing markers.json errors out immediately; timestamps are never guessed\n"
+            "  · publish/ refuses to overwrite an existing output by default; pass --overwrite explicitly\n"
         ),
     )
-    parser.add_argument("--edit", required=True, metavar="PATH", help="剪辑单 JSON 路径（content/edits/epNN.json）")
-    parser.add_argument("--out", required=True, metavar="PATH", help="输出视频路径（content/publish/epNN/long.mp4）")
-    parser.add_argument("--overwrite", action="store_true", help="允许覆盖已存在的输出文件")
+    parser.add_argument("--edit", required=True, metavar="PATH", help="path to the edit-list JSON (content/edits/epNN.json)")
+    parser.add_argument("--out", required=True, metavar="PATH", help="output video path (content/publish/epNN/long.mp4)")
+    parser.add_argument("--overwrite", action="store_true", help="allow overwriting an existing output file")
     parser.add_argument("--sessions-root", default=None, metavar="DIR",
-                        help=f"会话根目录，默认 {DEFAULT_SESSIONS_ROOT}")
-    parser.add_argument("--ffmpeg", default=None, metavar="PATH", help="ffmpeg 可执行文件路径（也可用环境变量 FFMPEG_BIN）")
-    parser.add_argument("--ffprobe", default=None, metavar="PATH", help="ffprobe 可执行文件路径（也可用环境变量 FFPROBE_BIN）")
-    parser.add_argument("--preset", default="medium", help="x264 preset，默认 medium")
-    parser.add_argument("--crf", type=float, default=20.0, help="x264 CRF，默认 20")
-    parser.add_argument("--dry-run", action="store_true", help="只打印将要执行的 ffmpeg 命令，不执行")
+                        help=f"session root directory, default {DEFAULT_SESSIONS_ROOT}")
+    parser.add_argument("--ffmpeg", default=None, metavar="PATH", help="path to the ffmpeg executable (or use the FFMPEG_BIN environment variable)")
+    parser.add_argument("--ffprobe", default=None, metavar="PATH", help="path to the ffprobe executable (or use the FFPROBE_BIN environment variable)")
+    parser.add_argument("--preset", default="medium", help="x264 preset, default medium")
+    parser.add_argument("--crf", type=float, default=20.0, help="x264 CRF, default 20")
+    parser.add_argument("--dry-run", action="store_true", help="only print the ffmpeg command that would run; do not execute it")
     return parser.parse_args(argv)
 
 
@@ -388,28 +388,28 @@ def main(argv: list[str] | None = None) -> int:
     ffmpeg = resolve_tool("ffmpeg", args.ffmpeg, FFMPEG_ENV, FFMPEG_FALLBACKS)
     ffprobe = resolve_tool("ffprobe", args.ffprobe, FFPROBE_ENV, FFPROBE_FALLBACKS)
 
-    edit_path = resolve_input_path(args.edit, "剪辑单")
-    edit = load_json(edit_path, "剪辑单")
+    edit_path = resolve_input_path(args.edit, "edit list")
+    edit = load_json(edit_path, "edit list")
 
     session = edit.get("session")
     if not isinstance(session, str) or not session.strip():
-        die(f"剪辑单缺少非空 session 字段: {edit_path}")
+        die(f"edit list is missing a non-empty session field: {edit_path}")
     session = session.strip()
     if Path(session).name != session:
-        die(f"session 必须是会话目录名（如 2026-10-20-ep01），不能是路径: {session!r}")
+        die(f"session must be a session directory name (e.g. 2026-10-20-ep01), not a path: {session!r}")
 
     segments_raw = edit.get("segments")
     if not isinstance(segments_raw, list) or not segments_raw:
-        die(f"剪辑单缺少非空 segments 数组: {edit_path}")
+        die(f"edit list is missing a non-empty segments array: {edit_path}")
 
     sessions_root = Path(args.sessions_root).expanduser() if args.sessions_root else DEFAULT_SESSIONS_ROOT
     session_dir = (sessions_root / session).resolve()
     if not session_dir.is_dir():
-        die(f"会话目录不存在: {session_dir}\n  （session 相对 {sessions_root} 解析）")
+        die(f"session directory not found: {session_dir}\n  (session is resolved relative to {sessions_root})")
 
     markers_path = session_dir / "markers.json"
     if not markers_path.is_file():
-        die(f"缺少 markers.json，不得猜测时间点: {markers_path}")
+        die(f"markers.json is missing; timestamps must not be guessed: {markers_path}")
 
     markers_doc = load_json(markers_path, "markers.json")
     markers = normalize_markers(markers_doc, markers_path)
@@ -419,29 +419,29 @@ def main(argv: list[str] | None = None) -> int:
         video_name = "raw.mkv"
     video_path = (session_dir / video_name).resolve()
     if not video_path.is_file():
-        die(f"录像文件不存在: {video_path}")
+        die(f"recording file not found: {video_path}")
 
     probe = ffprobe_info(ffprobe, video_path)
     duration = media_duration(probe, video_path)
     vstream = first_stream(probe, "video")
     if vstream is None:
-        die(f"录像没有视频流: {video_path}")
+        die(f"recording has no video stream: {video_path}")
     astream = first_stream(probe, "audio")
     has_audio = astream is not None
     if not has_audio:
-        warn(f"录像没有音频流，将只输出视频: {video_path}")
+        warn(f"recording has no audio stream; output will be video only: {video_path}")
 
     width = int(vstream.get("width") or 0)
     height = int(vstream.get("height") or 0)
     if width <= 0 or height <= 0:
-        die(f"无法确定录像分辨率: {video_path}")
+        die(f"cannot determine recording resolution: {video_path}")
     fps = frame_rate_arg(vstream)
 
     # ---- 解析 segments ----
     segments: list[dict] = []
     for idx, raw in enumerate(segments_raw):
         if not isinstance(raw, dict):
-            die(f"segments[{idx}] 不是对象: {edit_path}")
+            die(f"segments[{idx}] is not an object: {edit_path}")
         name = raw.get("name")
         if not isinstance(name, str) or not name.strip():
             name = f"seg{idx + 1}"
@@ -450,42 +450,42 @@ def main(argv: list[str] | None = None) -> int:
 
         from_label = raw.get("from_marker")
         if not isinstance(from_label, str) or not from_label:
-            die(f"segments[{idx}] ({name}) 缺少非空 from_marker: {edit_path}")
+            die(f"segments[{idx}] ({name}) is missing a non-empty from_marker: {edit_path}")
         to_label = raw.get("to_marker")
         if to_label is not None and (not isinstance(to_label, str) or not to_label):
-            die(f"segments[{idx}] ({name}) 的 to_marker 必须是标签字符串或 null: {edit_path}")
+            die(f"segments[{idx}] ({name}) to_marker must be a label string or null: {edit_path}")
 
         speed_raw = raw.get("speed", 1.0)
         if isinstance(speed_raw, bool) or not isinstance(speed_raw, (int, float)):
-            die(f"segments[{idx}] ({name}) 的 speed 必须是数字: {edit_path}")
+            die(f"segments[{idx}] ({name}) speed must be a number: {edit_path}")
         speed = float(speed_raw)
         if speed <= 0:
-            die(f"segments[{idx}] ({name}) 的 speed 必须 > 0，当前 {speed}")
+            die(f"segments[{idx}] ({name}) speed must be > 0, got {speed}")
 
-        start_marker = label_or_die(markers, from_label, f"segments[{idx}] ({name}) 的 from_marker")
+        start_marker = label_or_die(markers, from_label, f"segments[{idx}] ({name}) from_marker")
         start = start_marker["t"]
 
         if to_label is None:
             end = duration
-            end_desc = "录像结尾"
+            end_desc = "end of recording"
         else:
-            end_marker = label_or_die(markers, to_label, f"segments[{idx}] ({name}) 的 to_marker")
+            end_marker = label_or_die(markers, to_label, f"segments[{idx}] ({name}) to_marker")
             end = end_marker["t"]
-            end_desc = f"标签 {to_label!r} (t={end:g}s)"
+            end_desc = f"label {to_label!r} (t={end:g}s)"
 
         if start >= duration:
             die(
-                f"segments[{idx}] ({name}): from_marker 的 t={start:g}s 超出录像时长 {duration:.3f}s"
+                f"segments[{idx}] ({name}): from_marker t={start:g}s is beyond the recording duration of {duration:.3f}s"
             )
         if end > duration + 0.05:
             warn(
-                f"segments[{idx}] ({name}): 终点 {end:.3f}s 超出录像时长 {duration:.3f}s，已截到结尾"
+                f"segments[{idx}] ({name}): end {end:.3f}s is beyond the recording duration of {duration:.3f}s; clamped to the end"
             )
             end = duration
         if end - start <= 0.001:
             die(
-                f"segments[{idx}] ({name}): 区间无效（from={start:g}s, to={end:g}s），"
-                f"to_marker {'为 null' if to_label is None else repr(to_label)}"
+                f"segments[{idx}] ({name}): invalid interval (from={start:g}s, to={end:g}s), "
+                f"to_marker {'is null' if to_label is None else repr(to_label)}"
             )
 
         seg_dur = end - start
@@ -505,20 +505,20 @@ def main(argv: list[str] | None = None) -> int:
     subs_raw = edit.get("subtitles")
     if subs_raw not in (None, "", False):
         if not isinstance(subs_raw, str):
-            die(f"剪辑单的 subtitles 必须是路径字符串: {edit_path}")
-        subtitle_path = resolve_input_path(subs_raw, "字幕文件")
+            die(f"edit-list subtitles must be a path string: {edit_path}")
+        subtitle_path = resolve_input_path(subs_raw, "subtitle file")
         if subtitle_path.suffix.lower() not in (".srt", ".ass", ".ssa", ".vtt"):
-            warn(f"字幕扩展名不常见（{subtitle_path.suffix}），仍将尝试烧录: {subtitle_path}")
+            warn(f"uncommon subtitle extension ({subtitle_path.suffix}); will still try to burn it in: {subtitle_path}")
 
     # ---- 响度 ----
     loudness_raw = edit.get("loudness_lufs")
     loudness: float | None = None
     if loudness_raw is not None:
         if isinstance(loudness_raw, bool) or not isinstance(loudness_raw, (int, float)):
-            die(f"剪辑单的 loudness_lufs 必须是数字或 null: {edit_path}")
+            die(f"edit-list loudness_lufs must be a number or null: {edit_path}")
         loudness = float(loudness_raw)
         if not (-70.0 <= loudness <= 0.0):
-            warn(f"loudness_lufs={loudness} 不在常见范围 [-70, 0]，仍按原值归一化")
+            warn(f"loudness_lufs={loudness} is outside the usual range [-70, 0]; normalizing with the given value anyway")
 
     # ---- 输出检查（铁律：默认不覆盖） ----
     out_path = Path(args.out).expanduser()
@@ -530,11 +530,11 @@ def main(argv: list[str] | None = None) -> int:
     except ValueError:
         pass
     else:
-        die(f"拒绝把输出写进 sessions/（只增不删，禁止覆盖录像）: {out_path}")
+        die(f"refusing to write output into sessions/ (append-only; recordings must never be overwritten): {out_path}")
     if out_path.exists() and not args.overwrite:
-        die(f"输出已存在，拒绝覆盖: {out_path}\n  确认要覆盖请加 --overwrite")
+        die(f"output already exists; refusing to overwrite: {out_path}\n  pass --overwrite to replace it")
     if out_path.is_dir():
-        die(f"输出路径是目录: {out_path}")
+        die(f"output path is a directory: {out_path}")
 
     # ---- 组装 filter_complex ----
     n = len(segments)
@@ -610,22 +610,22 @@ def main(argv: list[str] | None = None) -> int:
     cmd += ["-movflags", "+faststart", str(out_path)]
 
     # ---- 打印计划 ----
-    info(f"剪辑单     : {edit_path}")
-    info(f"会话       : {session_dir}")
-    info(f"录像       : {video_path}  ({width}x{height}, {fps} fps, {duration:.3f}s)")
-    info(f"字幕       : {subtitle_path if subtitle_path else '（无）'}")
-    info(f"响度归一化 : " + (f"loudnorm I={format_num(loudness)}:TP=-1.5:LRA=11" if (has_audio and loudness is not None) else "（无）"))
+    info(f"Edit list  : {edit_path}")
+    info(f"Session    : {session_dir}")
+    info(f"Recording  : {video_path}  ({width}x{height}, {fps} fps, {duration:.3f}s)")
+    info(f"Subtitles  : {subtitle_path if subtitle_path else '(none)'}")
+    info(f"Loudness   : " + (f"loudnorm I={format_num(loudness)}:TP=-1.5:LRA=11" if (has_audio and loudness is not None) else "(none)"))
     for seg in segments:
         info(
-            f"  段 {seg['name']}: {seg['start']:.3f}s → {seg['end']:.3f}s"
+            f"  seg {seg['name']}: {seg['start']:.3f}s → {seg['end']:.3f}s"
             f" ({seg['end_desc']})  ×{format_num(seg['speed'])}"
             f"  →  {seg['out_dur']:.3f}s"
         )
-    info(f"预期总时长 : {expected_total:.3f}s")
-    info(f"输出       : {out_path}")
+    info(f"Expected   : {expected_total:.3f}s")
+    info(f"Output     : {out_path}")
 
     if args.dry_run:
-        info("dry-run，未执行。命令:")
+        info("dry-run; not executed. Command:")
         info(" ".join(_quote_for_display(c) for c in cmd))
         return 0
 
@@ -636,32 +636,32 @@ def main(argv: list[str] | None = None) -> int:
             cmd, capture_output=True, text=True, encoding="utf-8", errors="replace"
         )
     except OSError as exc:
-        die(f"无法执行 ffmpeg: {exc}")
+        die(f"cannot run ffmpeg: {exc}")
 
     if proc.stdout and proc.stdout.strip():
         print(proc.stdout.strip(), file=sys.stderr)
     if proc.returncode != 0:
         if not args.overwrite and "already exists" in (proc.stderr or "").lower():
-            die(f"输出已存在，拒绝覆盖: {out_path}\n  确认要覆盖请加 --overwrite")
+            die(f"output already exists; refusing to overwrite: {out_path}\n  pass --overwrite to replace it")
         print(proc.stderr.strip(), file=sys.stderr)
-        die(f"ffmpeg 退出码 {exit_code_text(proc.returncode)}，粗剪失败。\n  命令: {' '.join(_quote_for_display(c) for c in cmd)}")
+        die(f"ffmpeg exited with code {exit_code_text(proc.returncode)}; rough cut failed.\n  command: {' '.join(_quote_for_display(c) for c in cmd)}")
     if proc.stderr and proc.stderr.strip():
         print(proc.stderr.strip(), file=sys.stderr)
 
     if not out_path.is_file():
-        die(f"ffmpeg 报告成功但没有生成输出文件: {out_path}")
+        die(f"ffmpeg reported success but produced no output file: {out_path}")
 
     # ---- 校验输出 ----
     out_probe = ffprobe_info(ffprobe, out_path)
     out_dur = media_duration(out_probe, out_path)
     out_v = first_stream(out_probe, "video")
     out_a = first_stream(out_probe, "audio")
-    res = f"{out_v.get('width')}x{out_v.get('height')}" if out_v else "无视频流"
-    info(f"完成: {out_path}")
-    info(f"  实测时长: {out_dur:.3f}s（预期 {expected_total:.3f}s）")
-    info(f"  分辨率  : {res}, 视频 {out_v.get('codec_name') if out_v else '-'}, 音频 {(out_a.get('codec_name') if out_a else '无')}")
+    res = f"{out_v.get('width')}x{out_v.get('height')}" if out_v else "no video stream"
+    info(f"Done: {out_path}")
+    info(f"  measured duration: {out_dur:.3f}s (expected {expected_total:.3f}s)")
+    info(f"  resolution       : {res}, video {out_v.get('codec_name') if out_v else '-'}, audio {(out_a.get('codec_name') if out_a else 'none')}")
     if abs(out_dur - expected_total) > max(0.5, expected_total * 0.05):
-        warn(f"实测时长与预期相差较大: {out_dur:.3f}s vs {expected_total:.3f}s")
+        warn(f"measured duration differs from expected: {out_dur:.3f}s vs {expected_total:.3f}s")
     return 0
 
 
@@ -675,5 +675,5 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except KeyboardInterrupt:
-        print("已中断", file=sys.stderr)
+        print("Interrupted", file=sys.stderr)
         sys.exit(130)

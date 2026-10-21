@@ -28,9 +28,9 @@
 
 | 标签 | 用途 |
 |---|---|
-| `hook-绕圈成功` | 片头钩子画面 |
-| `dev-开始写引力` | 中段快剪 |
-| `fail-第一次运行` | 翻车点 1 |
-| `fail-翻车现场` | 翻车点 2 |
-| `fix-跑通了` | 高潮 |
-| `beauty-黄昏绕圈` | 结尾 + 封面候选 |
+| `hook-orbit-success` | 片头钩子画面 |
+| `dev-gravity-start` | 中段快剪 |
+| `fail-first-run` | 翻车点 1 |
+| `fail-flip-scene` | 翻车点 2 |
+| `fix-it-works` | 高潮 |
+| `beauty-sunset-orbit` | 结尾 + 封面候选 |

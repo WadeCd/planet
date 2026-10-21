@@ -27,8 +27,8 @@ content/
   "stopped_at": "2026-10-20T22:15:03+08:00",
   "video": "raw.mkv",
   "markers": [
-    {"label": "hook-绕圈成功", "t": 12.5, "at": "2026-10-20T21:30:12+08:00"},
-    {"label": "fix-跑通了", "t": 1284.0, "at": "2026-10-20T21:51:24+08:00"}
+    {"label": "hook-orbit-success", "t": 12.5, "at": "2026-10-20T21:30:12+08:00"},
+    {"label": "fix-it-works", "t": 1284.0, "at": "2026-10-20T21:51:24+08:00"}
   ]
 }
 ```
@@ -58,7 +58,7 @@ content/
 
 ```
 python content/kit/record.py start --dir content/sessions/2026-10-20-ep01
-python content/kit/record.py mark  --dir content/sessions/2026-10-20-ep01 --label "fail-第一次运行"
+python content/kit/record.py mark  --dir content/sessions/2026-10-20-ep01 --label "fail-first-run"
 python content/kit/record.py stop  --dir content/sessions/2026-10-20-ep01
 ```
 
@@ -103,8 +103,8 @@ python content/kit/roughcut.py --edit content/edits/ep01.json --out content/publ
   "subtitles": "content/publish/ep01/voice.srt",
   "loudness_lufs": -14.0,
   "segments": [
-    {"name": "钩子", "from_marker": "beauty-黄昏绕圈", "to_marker": null, "speed": 1.0},
-    {"name": "干活", "from_marker": "dev-开始写引力", "to_marker": "fail-第一次运行", "speed": 6.0}
+    {"name": "钩子", "from_marker": "beauty-sunset-orbit", "to_marker": null, "speed": 1.0},
+    {"name": "干活", "from_marker": "dev-gravity-start", "to_marker": "fail-first-run", "speed": 6.0}
   ]
 }
 ```
@@ -119,7 +119,7 @@ python content/kit/roughcut.py --edit content/edits/ep01.json --out content/publ
 ### clip.py —— 切 9:16 竖版
 
 ```
-python content/kit/clip.py --dir content/sessions/2026-10-20-ep01 --from-label "fail-第一次运行" --to-label "fail-翻车现场" --out content/publish/ep01/short1.mp4
+python content/kit/clip.py --dir content/sessions/2026-10-20-ep01 --from-label "fail-first-run" --to-label "fail-flip-scene" --out content/publish/ep01/short1.mp4
 python content/kit/clip.py --input long.mp4 --start 12.5 --end 40.0 --out content/publish/ep01/short2.mp4
 ```
 

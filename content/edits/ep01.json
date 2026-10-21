@@ -4,11 +4,11 @@
   "subtitles": "content/publish/ep01/voice.srt",
   "loudness_lufs": -14.0,
   "segments": [
-    {"name": "钩子-绕圈成功", "from_marker": "hook-绕圈成功", "to_marker": "dev-开始写引力", "speed": 1.0},
-    {"name": "干活-写引力(快剪)", "from_marker": "dev-开始写引力", "to_marker": "fail-第一次运行", "speed": 6.0},
-    {"name": "翻车1-滑落", "from_marker": "fail-第一次运行", "to_marker": "fail-翻车现场", "speed": 1.0},
-    {"name": "翻车2-南极翻转", "from_marker": "fail-翻车现场", "to_marker": "fix-跑通了", "speed": 1.0},
-    {"name": "修复-跑通了", "from_marker": "fix-跑通了", "to_marker": "beauty-黄昏绕圈", "speed": 1.0},
-    {"name": "结尾-黄昏绕圈+预告", "from_marker": "beauty-黄昏绕圈", "to_marker": null, "speed": 1.0}
+    {"name": "钩子-绕圈成功", "from_marker": "hook-orbit-success", "to_marker": "dev-gravity-start", "speed": 1.0},
+    {"name": "干活-写引力(快剪)", "from_marker": "dev-gravity-start", "to_marker": "fail-first-run", "speed": 6.0},
+    {"name": "翻车1-滑落", "from_marker": "fail-first-run", "to_marker": "fail-flip-scene", "speed": 1.0},
+    {"name": "翻车2-南极翻转", "from_marker": "fail-flip-scene", "to_marker": "fix-it-works", "speed": 1.0},
+    {"name": "修复-跑通了", "from_marker": "fix-it-works", "to_marker": "beauty-sunset-orbit", "speed": 1.0},
+    {"name": "结尾-黄昏绕圈+预告", "from_marker": "beauty-sunset-orbit", "to_marker": null, "speed": 1.0}
   ]
 }

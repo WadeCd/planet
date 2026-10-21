@@ -38,12 +38,18 @@
 
 | 时点 | 标签（原样打点） | 用途 |
 |---|---|---|
-| 开录前先跑通一遍完整绕圈 | `hook-绕圈成功` | 片头钩子画面（可后补录） |
-| Agent 开始写代码 | `dev-开始写引力` | 中段快剪 |
-| 第一次运行 | `fail-第一次运行` | 翻车点 1 |
-| 角色翻转/打滑 | `fail-翻车现场` | 翻车点 2 |
-| 改对 up 向量后运行 | `fix-跑通了` | 高潮 |
-| 日落光线下绕圈 | `beauty-黄昏绕圈` | 结尾+封面候选 |
+| 开录前先跑通一遍完整绕圈 | `hook-orbit-success` | 片头钩子画面（可后补录） |
+| Agent 开始写代码 | `dev-gravity-start` | 中段快剪 |
+| 第一次运行 | `fail-first-run` | 翻车点 1 |
+| 角色翻转/打滑 | `fail-flip-scene` | 翻车点 2 |
+| 改对 up 向量后运行 | `fix-it-works` | 高潮 |
+| 日落光线下绕圈 | `beauty-sunset-orbit` | 结尾+封面候选 |
+
+> 修订（2026-10-21）：打点标签已统一改为英文，便于英文 devlog 中命令行出镜。
+> 原中文标签对照（旧标签字面已从文档移除，按「旧前缀 + 中文词」留档）：
+> `hook-`+绕圈成功 → `hook-orbit-success`；`dev-`+开始写引力 → `dev-gravity-start`；
+> `fail-`+第一次运行 → `fail-first-run`；`fail-`+翻车现场 → `fail-flip-scene`；
+> `fix-`+跑通了 → `fix-it-works`；`beauty-`+黄昏绕圈 → `beauty-sunset-orbit`
 
 ## 四、旁白脚本（英文，约 3 分钟，voiceover.py 直接可用）
 
@@ -73,11 +79,11 @@ Next time, I'll ask the AI to scatter trees and rocks across the planet — with
 
 ## 五、剪辑单要点（Shanks 出正式版，这里是框架）
 
-- 0:00–0:08 钩子：`beauty-黄昏绕圈` 或 `hook-绕圈成功` 先行，旁白 HOOK 同步
+- 0:00–0:08 钩子：`beauty-sunset-orbit` 或 `hook-orbit-success` 先行，旁白 HOOK 同步
 - 0:08–0:40 问题段：录屏+示意图（up 向量示意可用录屏标注）
-- 0:40–1:40 干活段：`dev-开始写引力` 快剪（4–8 倍速），穿插代码特写
+- 0:40–1:40 干活段：`dev-gravity-start` 快剪（4–8 倍速），穿插代码特写
 - 1:40–2:20 翻车段：两个 fail 标记原速播放，保留现场声效/静默笑点
-- 2:20–2:50 修复+跑通：`fix-跑通了` 原速，旁白 RESULT
+- 2:20–2:50 修复+跑通：`fix-it-works` 原速，旁白 RESULT
 - 2:50–3:10 结尾：黄昏绕圈 + 预告
 
 **竖版切片（Shorts/TikTok 共用，各 15–30 秒）**：
