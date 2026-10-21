@@ -22,3 +22,6 @@ content/publish/**/*.wav
 # Python
 __pycache__/
 *.pyc
+
+# Godot 会为入库的音频/媒体生成 .import；被忽略的媒体其 .import 一并忽略
+content/publish/**/*.mp3.import
