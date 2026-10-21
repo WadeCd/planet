@@ -19,7 +19,7 @@ func _ready() -> void:
 		# Initial UI state
 		var total_stars: int = get_tree().get_nodes_in_group("collectibles").size()
 		hud.update_stars(0, total_stars)
-		hud.show_planet_name("绿洲星 (Oasis Planet)")
+		hud.show_planet_name("Oasis Planet")
 
 func _process(_delta: float) -> void:
 	if player and hud:

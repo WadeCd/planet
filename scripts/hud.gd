@@ -24,7 +24,7 @@ func _process(delta: float) -> void:
 
 func update_stars(collected: int, total: int) -> void:
 	if star_label:
-		star_label.text = "⭐ 星之碎片: %d / %d" % [collected, total]
+		star_label.text = "⭐ Stars: %d / %d" % [collected, total]
 		# Pop animation on collection
 		var tween: Tween = create_tween()
 		tween.tween_property(star_label, "scale", Vector2(1.2, 1.2), 0.1)
@@ -36,14 +36,14 @@ func update_stars(collected: int, total: int) -> void:
 func show_planet_name(name_str: String) -> void:
 	if not planet_label or not planet_banner:
 		return
-	planet_label.text = "✦ 当前引力域: " + name_str + " ✦"
+	planet_label.text = "✦ Gravity Field: " + name_str + " ✦"
 	banner_timer = 3.5
 	var tween: Tween = create_tween()
 	tween.tween_property(planet_banner, "modulate:a", 1.0, 0.3)
 
 func update_telemetry(speed: float, altitude: float) -> void:
 	if telemetry_label:
-		telemetry_label.text = "速度: %4.1f m/s  |  离地高度: %4.1f m" % [speed, altitude]
+		telemetry_label.text = "Speed: %4.1f m/s  |  Altitude: %4.1f m" % [speed, altitude]
 
 func show_victory() -> void:
 	if not victory_modal:

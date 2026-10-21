@@ -192,7 +192,7 @@ func _update_gravity_and_up(delta: float) -> void:
 		if current_planet:
 			planet_changed.emit(current_planet.planet_name)
 		else:
-			planet_changed.emit("深空失重状态 (Zero-G Space)")
+			planet_changed.emit("Zero-G Space")
 
 	if current_gravity.length_squared() > 0.01:
 		target_up = -current_gravity.normalized()

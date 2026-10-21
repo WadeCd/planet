@@ -1,7 +1,7 @@
 class_name Planet
 extends StaticBody3D
 
-@export var planet_name: String = "小星球"
+@export var planet_name: String = "Tiny Planet"
 @export var radius: float = 20.0:
 	set(val):
 		radius = maxf(2.0, val)

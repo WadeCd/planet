@@ -99,7 +99,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
 theme_override_font_sizes/font_size = 18
-text = "⭐ 星之碎片: 0 / 0"
+text = "⭐ Stars: 0 / 0"
 
 [node name="TopCenter" type="MarginContainer" parent="Control"]
 layout_mode = 1
@@ -121,7 +121,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.95, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0.2, 0.4, 0.8)
 theme_override_font_sizes/font_size = 17
-text = "✦ 当前引力域: 绿洲小行星 ✦"
+text = "✦ Gravity Field: Oasis Planet ✦"
 horizontal_alignment = 1
 
 [node name="BottomLeft" type="MarginContainer" parent="Control"]
@@ -154,19 +154,19 @@ theme_override_constants/separation = 4
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 14
-text = "🎮 小星球引力控制指南"
+text = "✦ Planet Gravity — Controls"
 
 [node name="Line1" type="Label" parent="Control/BottomLeft/HelpPanel/Margin/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 0.85)
 theme_override_font_sizes/font_size = 13
-text = "[W][A][S][D] 环球移动  •  [空格] 沿星球法线跳跃  •  [Shift] 喷气疾跑"
+text = "[W][A][S][D] Walk  •  [Space] Jump  •  [Shift] Sprint"
 
 [node name="Line2" type="Label" parent="Control/BottomLeft/HelpPanel/Margin/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 0.75)
 theme_override_font_sizes/font_size = 12
-text = "[鼠标移动] 自由轨道环绕  •  [滚轮] 远近缩放  •  [R] 快速重生  •  [ESC] 切换鼠标"
+text = "[Mouse] Orbit  •  [Wheel] Zoom  •  [R] Respawn  •  [ESC] Free cursor"
 
 [node name="BottomRight" type="MarginContainer" parent="Control"]
 layout_mode = 1
@@ -184,9 +184,11 @@ theme_override_constants/margin_bottom = 20
 
 [node name="TelemetryLabel" type="Label" parent="Control/BottomRight"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.85, 0.95, 0.8)
+theme_override_colors/font_color = Color(0.94, 0.98, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 13
-text = "速度:  0.0 m/s  |  离地高度:  0.0 m"
+text = "Speed:  0.0 m/s  |  Altitude:  0.0 m"
 horizontal_alignment = 2
 
 [node name="Center" type="CenterContainer" parent="Control"]
@@ -219,20 +221,19 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
 theme_override_colors/font_shadow_color = Color(0.8, 0.4, 0, 0.8)
 theme_override_font_sizes/font_size = 28
-text = "✨ 宇宙探索大胜利！✨"
+text = "✨ PLANET CONQUERED! ✨"
 horizontal_alignment = 1
 
 [node name="VictoryDesc" type="Label" parent="Control/Center/VictoryModal/Margin/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 0.9)
 theme_override_font_sizes/font_size = 16
-text = "你成功掌握了任意朝向的球面引力物理！
-收集了全星系所有的能量星之碎片！"
+text = "You mastered gravity on a sphere — walking in any direction.\nYou collected every Star Fragment in the system!"
 horizontal_alignment = 1
 
 [node name="VictoryTip" type="Label" parent="Control/Center/VictoryModal/Margin/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.8, 1, 0.75)
 theme_override_font_sizes/font_size = 13
-text = "按 [R] 键可以重置位置重新挑战或继续自由漫游探索"
+text = "Press [R] to reset your position, or keep exploring freely"
 horizontal_alignment = 1

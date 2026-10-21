@@ -83,7 +83,7 @@ light_energy = 0.45
 [node name="Planets" type="Node3D" parent="."]
 
 [node name="PlanetOasis" parent="Planets" instance=ExtResource("2_planet")]
-planet_name = "绿洲星 (Oasis Planet)"
+planet_name = "Oasis Planet"
 radius = 20.0
 gravity_strength = 18.0
 gravity_radius = 55.0
@@ -107,7 +107,7 @@ mesh = SubResource("BoxMesh_arch_top")
 
 [node name="PlanetMoon" parent="Planets" instance=ExtResource("2_planet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 85, 20, 0)
-planet_name = "赤岩卫星 (Crimson Moon)"
+planet_name = "Crimson Moon"
 radius = 13.0
 gravity_strength = 11.0
 gravity_radius = 42.0
@@ -117,7 +117,7 @@ spin_speed = 0.025
 
 [node name="PlanetComet" parent="Planets" instance=ExtResource("2_planet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 75, -60)
-planet_name = "极光冰晶彗星 (Aurora Crystal Comet)"
+planet_name = "Aurora Crystal Comet"
 radius = 9.0
 gravity_strength = 8.0
 gravity_radius = 35.0
