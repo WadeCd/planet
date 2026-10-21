@@ -7,14 +7,14 @@
 
 ## 一、这期讲什么
 
-一句话：一个没做过 3D 游戏的 Web 开发者，把「小星球引力」写成设计文档交给 AI Agent 实现，全程公开翻车和修复。
+一句话：一个没做过 3D 游戏的 Web 开发者，把「小星球引力」写成设计文档交给 AI Agent 实现，全程公开 AI 怎么把引力一步步做出来。
 
 标题候选（英文，发布时三选一）：
 1. I Let an AI Build Gravity for My Tiny Planet
 2. A Web Dev Builds a Tiny Planet He Can Walk Around (With AI)
 3. Tiny Planet Gravity in Godot — Built by an AI Agent
 
-叙事结构（照《星辰之旅》拆解的路子）：钩子画面先行 → 讲清问题 → Agent 干活 → 翻车 → 一句话点破关键 → 跑通 → 预告下期。
+叙事结构（照《星辰之旅》拆解的路子）：钩子画面先行 → 讲清问题 → Agent 讲解代码 → 一句话点破关键 → 跑通 → 预告下期。
 
 ## 二、给 Agent 的场景设计（开发规格）
 
@@ -76,13 +76,13 @@ Next time, I'll ask the AI to scatter trees and rocks across the planet — with
 
 ## 五、剪辑单要点（Shanks 出正式版，这里是框架）
 
-> 2026-10-21 修订：翻车段已取消，以下时间轴按新旁白（约 1:45）重排，正式剪辑单以新配音实际时长为准。
+> 2026-10-21 修订：翻车段已取消，以下时间轴按新旁白实测时长（2:02 / 121.968s）重排；正式剪辑单以录制 markers 为准。Dev 讲解段 speed 默认 1.0（讲解不用倍速），已确认。
 
 - 0:00–0:08 钩子：`beauty-sunset-orbit` 或 `hook-orbit-success` 先行，旁白 HOOK 同步
-- 0:08–0:35 问题段：录屏+示意图（up 向量示意可用录屏标注）
-- 0:35–1:10 干活段：`dev-gravity-start` 快剪（4–8 倍速），穿插代码特写
-- 1:10–1:35 原理+跑通：`fix-it-works` 原速，旁白 TURN/FIX/RESULT（"up = 从星球中心指向你"一句配示意图强调）
-- 结尾：黄昏绕圈 + 预告
+- 0:08–0:38 问题段：录屏+示意图（up 向量示意可用录屏标注）
+- 0:38–1:15 讲解段：`dev-gravity-start` 起，打开 player.gd 讲核心逻辑（重力指向球心 / up 向量对齐 / slerp 平滑转向），画面在代码与实机绕圈间来回切
+- 1:15–1:45 原理+跑通：`fix-it-works` 原速，旁白 TURN/FIX/RESULT（"up = 从星球中心指向你"一句配示意图强调）
+- 1:45–2:02 结尾：黄昏绕圈 + 预告
 
 **竖版切片（Shorts/TikTok 共用，各 15–30 秒）**：
 1. 黄昏绕圈纯画面版（satisfying 向）
