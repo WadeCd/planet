@@ -6,7 +6,7 @@
 
 用法（定位二选一）:
     python content/kit/clip.py --dir content/sessions/2026-10-20-ep01 \
-        --from-label "fail-first-run" --to-label "fail-flip-scene" --out content/publish/ep01/short1.mp4
+        --from-label "fix-it-works" --to-label "beauty-sunset-orbit" --out content/publish/ep01/short1.mp4
     python content/kit/clip.py --input long.mp4 --start 12.5 --end 40.0 \
         --out content/publish/ep01/short2.mp4
 
@@ -252,7 +252,7 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         epilog=(
             "Examples:\n"
             "  python content/kit/clip.py --dir content/sessions/2026-10-20-ep01 \\\n"
-            "      --from-label \"fail-first-run\" --to-label \"fail-flip-scene\" --out content/publish/ep01/short1.mp4\n"
+            "      --from-label \"fix-it-works\" --to-label \"beauty-sunset-orbit\" --out content/publish/ep01/short1.mp4\n"
             "  python content/kit/clip.py --input long.mp4 --start 12.5 --end 40.0 \\\n"
             "      --out content/publish/ep01/short2.mp4\n"
             "\n"

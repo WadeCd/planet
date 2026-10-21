@@ -5,7 +5,7 @@
 用法::
 
     python content/kit/record.py start --dir content/sessions/2026-10-20-ep01
-    python content/kit/record.py mark  --dir content/sessions/2026-10-20-ep01 --label "fail-first-run"
+    python content/kit/record.py mark  --dir content/sessions/2026-10-20-ep01 --label "fix-it-works"
     python content/kit/record.py stop  --dir content/sessions/2026-10-20-ep01
 
 设计要点：
@@ -845,7 +845,7 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Examples:\n"
             "  python content/kit/record.py start --dir content/sessions/2026-10-20-ep01\n"
-            "  python content/kit/record.py mark  --dir content/sessions/2026-10-20-ep01 --label \"fail-first-run\"\n"
+            "  python content/kit/record.py mark  --dir content/sessions/2026-10-20-ep01 --label \"fix-it-works\"\n"
             "  python content/kit/record.py stop  --dir content/sessions/2026-10-20-ep01\n"
         ),
     )

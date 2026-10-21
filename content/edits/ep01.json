@@ -4,11 +4,9 @@
   "subtitles": "content/publish/ep01/voice.srt",
   "loudness_lufs": -14.0,
   "segments": [
-    {"name": "钩子-绕圈成功", "from_marker": "hook-orbit-success", "to_marker": "dev-gravity-start", "speed": 1.0},
-    {"name": "干活-写引力(快剪)", "from_marker": "dev-gravity-start", "to_marker": "fail-first-run", "speed": 6.0},
-    {"name": "翻车1-滑落", "from_marker": "fail-first-run", "to_marker": "fail-flip-scene", "speed": 1.0},
-    {"name": "翻车2-南极翻转", "from_marker": "fail-flip-scene", "to_marker": "fix-it-works", "speed": 1.0},
-    {"name": "修复-跑通了", "from_marker": "fix-it-works", "to_marker": "beauty-sunset-orbit", "speed": 1.0},
-    {"name": "结尾-黄昏绕圈+预告", "from_marker": "beauty-sunset-orbit", "to_marker": null, "speed": 1.0}
+    {"name": "Hook - Orbit", "from_marker": "hook-orbit-success", "to_marker": "dev-gravity-start", "speed": 1.0},
+    {"name": "Dev - Code Walkthrough", "from_marker": "dev-gravity-start", "to_marker": "fix-it-works", "speed": 1.0},
+    {"name": "Fix - It Works", "from_marker": "fix-it-works", "to_marker": "beauty-sunset-orbit", "speed": 1.0},
+    {"name": "Outro - Sunset Orbit", "from_marker": "beauty-sunset-orbit", "to_marker": null, "speed": 1.0}
   ]
 }

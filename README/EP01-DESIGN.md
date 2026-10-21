@@ -40,18 +40,15 @@
 |---|---|---|
 | 开录前先跑通一遍完整绕圈 | `hook-orbit-success` | 片头钩子画面（可后补录） |
 | Agent 开始写代码 | `dev-gravity-start` | 中段快剪 |
-| 第一次运行 | `fail-first-run` | 翻车点 1 |
-| 角色翻转/打滑 | `fail-flip-scene` | 翻车点 2 |
+| 第一次运行 | `fail-first-run` | （已取消，见下方修订注记） |
+| 角色翻转/打滑 | `fail-flip-scene` | （已取消，见下方修订注记） |
 | 改对 up 向量后运行 | `fix-it-works` | 高潮 |
 | 日落光线下绕圈 | `beauty-sunset-orbit` | 结尾+封面候选 |
 
-> 修订（2026-10-21）：打点标签已统一改为英文，便于英文 devlog 中命令行出镜。
-> 原中文标签对照（旧标签字面已从文档移除，按「旧前缀 + 中文词」留档）：
-> `hook-`+绕圈成功 → `hook-orbit-success`；`dev-`+开始写引力 → `dev-gravity-start`；
-> `fail-`+第一次运行 → `fail-first-run`；`fail-`+翻车现场 → `fail-flip-scene`；
-> `fix-`+跑通了 → `fix-it-works`；`beauty-`+黄昏绕圈 → `beauty-sunset-orbit`
+> 2026-10-21 修订：标签统一改为英文（原中文标签：hook-绕圈成功 / dev-开始写引力 / fail-第一次运行 / fail-翻车现场 / fix-跑通了 / beauty-黄昏绕圈）。原因：录制全屏抓屏，终端命令与打点标签会上镜，受众为英文用户，画面内不出现中文。脚本输出同步改英文。
+> 2026-10-21 二次修订：**取消翻车段**（用户拍板：先跑通第一条视频）。fail-first-run / fail-flip-scene 两个标签作废，不再复现翻车、不改 player.gd；旁白 [FAIL] 段已替换为 [TURN] 过渡段，配音需按新稿重跑。
 
-## 四、旁白脚本（英文，约 3 分钟，voiceover.py 直接可用）
+## 四、旁白脚本（英文，约 2 分钟，voiceover.py 直接可用）
 
 [HOOK]
 This is a planet you can walk all the way around. And I didn't write most of the code — an AI agent did. I'm a web developer. I've never made a 3D game. So I gave an AI one job: build gravity that pulls you toward the center of a tiny planet, like The Little Prince. Here's what happened.
@@ -62,8 +59,8 @@ In a normal game, down is just... down. But on a tiny planet, down is different 
 [BUILD]
 So here's the setup. Godot 4, one sphere, one character. I wrote a design doc — just a markdown file explaining exactly what I wanted — and handed it to a coding agent. Build me a planet. Make gravity point at its heart.
 
-[FAIL]
-First try: the agent gave me normal gravity... and a round planet. The character slid right off, like the whole planet was made of ice. Second try: he kept flipping upside down near the south pole. I'm not gonna lie — this part took the longest.
+[TURN]
+Here's the catch: on a tiny planet, "down" is a moving target. Stand still and it feels easy. Take one step, and your whole sense of up has already changed. So the code has to re-aim gravity — and your body — every single frame.
 
 [FIX]
 The fix turned out to be one idea. Every frame, your "up" is the direction from the planet's center to you. Rotate to match it. Gravity always points home. Once the agent got that one idea — everything clicked.
@@ -79,20 +76,21 @@ Next time, I'll ask the AI to scatter trees and rocks across the planet — with
 
 ## 五、剪辑单要点（Shanks 出正式版，这里是框架）
 
+> 2026-10-21 修订：翻车段已取消，以下时间轴按新旁白（约 1:45）重排，正式剪辑单以新配音实际时长为准。
+
 - 0:00–0:08 钩子：`beauty-sunset-orbit` 或 `hook-orbit-success` 先行，旁白 HOOK 同步
-- 0:08–0:40 问题段：录屏+示意图（up 向量示意可用录屏标注）
-- 0:40–1:40 干活段：`dev-gravity-start` 快剪（4–8 倍速），穿插代码特写
-- 1:40–2:20 翻车段：两个 fail 标记原速播放，保留现场声效/静默笑点
-- 2:20–2:50 修复+跑通：`fix-it-works` 原速，旁白 RESULT
-- 2:50–3:10 结尾：黄昏绕圈 + 预告
+- 0:08–0:35 问题段：录屏+示意图（up 向量示意可用录屏标注）
+- 0:35–1:10 干活段：`dev-gravity-start` 快剪（4–8 倍速），穿插代码特写
+- 1:10–1:35 原理+跑通：`fix-it-works` 原速，旁白 TURN/FIX/RESULT（"up = 从星球中心指向你"一句配示意图强调）
+- 结尾：黄昏绕圈 + 预告
 
 **竖版切片（Shorts/TikTok 共用，各 15–30 秒）**：
-1. 翻车合集：两个 fail 标记拼接，字幕「AI built my planet's gravity. Try #1:」
-2. before/after 硬切：打滑 vs 绕圈成功，同一机位
-3. 黄昏绕圈纯画面版（satisfying 向）
+1. 黄昏绕圈纯画面版（satisfying 向）
+2. 一句话讲清小星球重力：up 向量示意 + 绕圈画面，字幕「On a tiny planet, 'up' changes with every step」
+3. 绕圈一周加速版（speedrun 一圈地平线）
 
 ## 六、发布文案框架（发布前 Shanks 出终稿）
 
 - YouTube：标题三选一（见上）；描述第一行放钩子句，第二段放"设计文档驱动 AI"的方法论，附下期预告
-- X：一条主帖（黄昏绕圈 GIF/短视频 + 一句失败→成功对比）+ 一条 thread 讲 up 向量的一句话原理，结尾留开放问题引回复
+- X：一条主帖（黄昏绕圈 GIF/短视频 + 一句钩子）+ 一条 thread 讲 up 向量的一句话原理，结尾留开放问题引回复
 - TikTok：用竖版切片 1，文案模板「POV: you let an AI build gravity」类钩子

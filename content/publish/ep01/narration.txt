@@ -4,7 +4,7 @@ In a normal game, down is just... down. But on a tiny planet, down is different 
 
 So here's the setup. Godot 4, one sphere, one character. I wrote a design doc — just a markdown file explaining exactly what I wanted — and handed it to a coding agent. Build me a planet. Make gravity point at its heart.
 
-First try: the agent gave me normal gravity... and a round planet. The character slid right off, like the whole planet was made of ice. Second try: he kept flipping upside down near the south pole. I'm not gonna lie — this part took the longest.
+Here's the catch: on a tiny planet, "down" is a moving target. Stand still and it feels easy. Take one step, and your whole sense of up has already changed. So the code has to re-aim gravity — and your body — every single frame.
 
 The fix turned out to be one idea. Every frame, your "up" is the direction from the planet's center to you. Rotate to match it. Gravity always points home. Once the agent got that one idea — everything clicked.
 

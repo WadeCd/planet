@@ -29,8 +29,12 @@
 | 标签 | 用途 |
 |---|---|
 | `hook-orbit-success` | 片头钩子画面 |
-| `dev-gravity-start` | 中段快剪 |
-| `fail-first-run` | 翻车点 1 |
-| `fail-flip-scene` | 翻车点 2 |
+| `dev-gravity-start` | 中段代码讲解（原"写代码快剪"，已改为讲解已完成代码） |
+| ~~`fail-first-run`~~ | **已取消**（2026-10-21 拍板取消翻车段，不再打点） |
+| ~~`fail-flip-scene`~~ | **已取消**（同上） |
 | `fix-it-works` | 高潮 |
 | `beauty-sunset-orbit` | 结尾 + 封面候选 |
+
+> EP01 实际会打点的只有 4 个：`hook-orbit-success` / `dev-gravity-start` /
+> `fix-it-works` / `beauty-sunset-orbit`，对应 `ep01.json` 里的 4 个 segment。
+> 翻车段取消的详情见 `README/EP01-DESIGN.md` 第三节的修订注记。

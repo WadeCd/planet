@@ -59,66 +59,66 @@ Build me a planet.
 Make gravity point at its heart.
 
 16
-00:00:59,487 --> 00:01:04,462
-First try: the agent gave me normal gravity... and a round planet.
+00:00:59,487 --> 00:01:04,412
+Here's the catch: on a tiny planet, "down" is a moving target.
 
 17
-00:01:04,462 --> 00:01:09,125
-The character slid right off, like the whole planet was made of ice.
+00:01:04,412 --> 00:01:07,200
+Stand still and it feels easy.
 
 18
-00:01:09,125 --> 00:01:13,762
-Second try: he kept flipping upside down near the south pole.
+00:01:07,200 --> 00:01:11,612
+Take one step, and your whole sense of up has already changed.
 
 19
-00:01:13,762 --> 00:01:17,437
-I'm not gonna lie — this part took the longest.
+00:01:11,612 --> 00:01:16,950
+So the code has to re-aim gravity — and your body — every single frame.
 
 20
-00:01:17,437 --> 00:01:20,287
+00:01:16,950 --> 00:01:19,800
 The fix turned out to be one idea.
 
 21
-00:01:20,287 --> 00:01:24,987
+00:01:19,800 --> 00:01:24,500
 Every frame, your "up" is the direction from the planet's center to you.
 
 22
-00:01:24,987 --> 00:01:26,987
+00:01:24,500 --> 00:01:26,500
 Rotate to match it.
 
 23
-00:01:26,987 --> 00:01:29,512
+00:01:26,500 --> 00:01:29,025
 Gravity always points home.
 
 24
-00:01:29,512 --> 00:01:33,587
+00:01:29,025 --> 00:01:33,100
 Once the agent got that one idea — everything clicked.
 
 25
-00:01:33,587 --> 00:01:35,075
+00:01:33,100 --> 00:01:34,587
 And now...
 
 26
-00:01:35,075 --> 00:01:37,562
+00:01:34,587 --> 00:01:37,075
 I can walk over the horizon.
 
 27
-00:01:37,562 --> 00:01:39,525
+00:01:37,075 --> 00:01:39,037
 It sounds small.
 
 28
-00:01:39,525 --> 00:01:42,862
+00:01:39,037 --> 00:01:42,375
 But this is the foundation of the entire game.
 
 29
-00:01:42,862 --> 00:01:48,975
+00:01:42,375 --> 00:01:48,487
 Every tree, every house, every fox I add later — all of it stands on this math.
 
 30
-00:01:48,975 --> 00:01:57,275
+00:01:48,487 --> 00:01:56,787
 Next time, I'll ask the AI to scatter trees and rocks across the planet — without them floating in the air or sinking into the ground.
 
 31
-00:01:57,275 --> 00:02:02,400
+00:01:56,787 --> 00:02:01,912
 Subscribe if you want to watch a web developer accidentally become a game developer.
 

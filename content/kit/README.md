@@ -58,7 +58,7 @@ content/
 
 ```
 python content/kit/record.py start --dir content/sessions/2026-10-20-ep01
-python content/kit/record.py mark  --dir content/sessions/2026-10-20-ep01 --label "fail-first-run"
+python content/kit/record.py mark  --dir content/sessions/2026-10-20-ep01 --label "fix-it-works"
 python content/kit/record.py stop  --dir content/sessions/2026-10-20-ep01
 ```
 
@@ -103,11 +103,15 @@ python content/kit/roughcut.py --edit content/edits/ep01.json --out content/publ
   "subtitles": "content/publish/ep01/voice.srt",
   "loudness_lufs": -14.0,
   "segments": [
-    {"name": "钩子", "from_marker": "beauty-sunset-orbit", "to_marker": null, "speed": 1.0},
-    {"name": "干活", "from_marker": "dev-gravity-start", "to_marker": "fail-first-run", "speed": 6.0}
+    {"name": "Hook - Orbit", "from_marker": "hook-orbit-success", "to_marker": "dev-gravity-start", "speed": 1.0},
+    {"name": "Outro - Sunset Orbit", "from_marker": "beauty-sunset-orbit", "to_marker": null, "speed": 1.0}
   ]
 }
 ```
+
+> EP01 的真实剪辑单在 `content/edits/ep01.json`。上面只是**格式示例**。
+> 注意：EP01 已取消翻车段，`fail-first-run` / `fail-flip-scene` 两个标签作废，
+> 录像时不会打点 —— **不要拿它们当 `mark`/`--from-label` 的例子**（会报 label not found）。
 
 - `session` 相对 `content/sessions/` 解析；`video` 恒为 `raw.mkv`。
 - `from_marker`/`to_marker` 用**标签**定位；`to_marker` 为 `null` 表示直到录像结尾。
@@ -119,7 +123,7 @@ python content/kit/roughcut.py --edit content/edits/ep01.json --out content/publ
 ### clip.py —— 切 9:16 竖版
 
 ```
-python content/kit/clip.py --dir content/sessions/2026-10-20-ep01 --from-label "fail-first-run" --to-label "fail-flip-scene" --out content/publish/ep01/short1.mp4
+python content/kit/clip.py --dir content/sessions/2026-10-20-ep01 --from-label "fix-it-works" --to-label "beauty-sunset-orbit" --out content/publish/ep01/short1.mp4
 python content/kit/clip.py --input long.mp4 --start 12.5 --end 40.0 --out content/publish/ep01/short2.mp4
 ```
 

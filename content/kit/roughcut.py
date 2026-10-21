@@ -14,8 +14,8 @@
       "subtitles": "content/publish/ep01/voice.srt",
       "loudness_lufs": -14.0,
       "segments": [
-        {"name": "钩子", "from_marker": "beauty-sunset-orbit", "to_marker": null, "speed": 1.0},
-        {"name": "干活", "from_marker": "dev-gravity-start", "to_marker": "fail-first-run", "speed": 6.0}
+        {"name": "Hook - Orbit", "from_marker": "hook-orbit-success", "to_marker": "dev-gravity-start", "speed": 1.0},
+        {"name": "Outro - Sunset Orbit", "from_marker": "beauty-sunset-orbit", "to_marker": null, "speed": 1.0}
       ]
     }
 
